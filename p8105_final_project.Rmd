@@ -4,3 +4,5 @@ output: github_document
 date: "2023-11-06"
 ---
 
+Group Members:
+Jiying Wang, jw4489 
