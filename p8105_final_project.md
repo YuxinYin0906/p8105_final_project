@@ -4,6 +4,7 @@ p8105_final_project
 
 ## Group Members:
 
+
 - Fangyi Chen, fc2718
 - Jiying Wang, jw4489
 
@@ -27,11 +28,16 @@ airports, weather, etc. We would also assess if the insights gained from
 
 ## Planned analyses / visualizations / coding challenges
 
-- Planned analyses
+##### Planned analyses
 
-- Visualizations
+##### Planned visualizations
 
-- Coding challenges
+##### Planned coding challenges
+
+Given the original dataset `flights` we will employ is a huge dataset
+with 336,776 entries, one of the biggest coding challenges we will
+encounter is how to, without bias, get the dataset down to a size that
+is suitable for use but still representative.
 
 ## Planned timeline
 
