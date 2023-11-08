@@ -4,7 +4,6 @@ p8105_final_project
 
 ## Group Members:
 
-
 - Fangyi Chen, fc2718
 - Jiying Wang, jw4489
 
@@ -29,6 +28,20 @@ airports, weather, etc. We would also assess if the insights gained from
 ## Planned analyses / visualizations / coding challenges
 
 ##### Planned analyses
+
+We plan to perform preliminary descriptive analysis of the data, which
+entails the summarization of some basic characteristics (size,
+attributes), data distributions (mean, range, standard deviation) and
+number of missing values. The outcomes of the preliminary analysis will
+provide guidance for the future steps of data preprocessing and
+cleaning. Another analysis will be focused on the correlation between
+weather conditions and flight delays in minutes. We are also interested
+to investigate if there exists any disparity of flight delays among
+diverse airlines given the identical weather conditions. Additional
+analysis will be centered around the predictive model outcomes, where
+evaluation metrics include root mean square error (RMSE) and R squared.
+Performance variability across different temporal ranges (from earliest
+timepoint to the most recent data) will also be examined.
 
 ##### Planned visualizations
 
