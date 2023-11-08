@@ -41,8 +41,6 @@ is suitable for use but still representative.
 
 ## Planned timeline
 
-## Tables
-
 | Milestone                       | Description                                                                                                                                                                                                       | Expected Date |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
 | Project Logistics Setup         | 1\. Establish the general objective and scope of the project. 2. Pinpoint the required data sources                                                                                                               | 11/10/2023    |
