@@ -4,7 +4,8 @@ p8105_final_project
 
 ## Group Members:
 
-Fangyi Chen, fc2718 <br>Jiying Wang, jw4489
+- Fangyi Chen, fc2718
+- Jiying Wang, jw4489
 
 ## Tentative Project Title
 
@@ -28,6 +29,20 @@ airports, weather, etc. We would also assess if the insights gained from
 
 ##### Planned analyses
 
+We plan to perform preliminary descriptive analysis of the data, which
+entails the summarization of some basic characteristics (size,
+attributes), data distributions (mean, range, standard deviation) and
+number of missing values. The outcomes of the preliminary analysis will
+provide guidance for the future steps of data preprocessing and
+cleaning. Another analysis will be focused on the correlation between
+weather conditions and flight delays in minutes. We are also interested
+to investigate if there exists any disparity of flight delays among
+diverse airlines given the identical weather conditions. Additional
+analysis will be centered around the predictive model outcomes, where
+evaluation metrics include root mean square error (RMSE) and R squared.
+Performance variability across different temporal ranges (from earliest
+timepoint to the most recent data) will also be examined.
+
 ##### Planned visualizations
 
 ##### Planned coding challenges
@@ -38,3 +53,13 @@ encounter is how to, without bias, get the dataset down to a size that
 is suitable for use but still representative.
 
 ## Planned timeline
+
+| Milestone                       | Description                                                                                                                                                                                                       | Expected Date |
+|---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|
+| Project Logistics Setup         | 1\. Establish the general objective and scope of the project. 2. Pinpoint the required data sources                                                                                                               | 11/10/2023    |
+| Project Review and Plan Outline | 1\. Meet with the teaching team to discuss the project proposal. 2. Anticipate difficulties and develop a contingency plan. 3. Identify major tasks and assign tasks to group members.                            | 11/14/2023    |
+| Plan Execution                  | The key components of the projects are anticipated to be completed: data cleaning and preprocessing, visualizations, model training and deployment, outcome evaluation, and any statistical or follow-up analysis | 11/27/2023    |
+| Report Drafting and Compiling   | 1\. Collect and finalize written parts of the project including but not limited to the following: objective, motivation, EDA, analysis, and discussion. 2. Revise and edit to ensure coherence and clarity        | 12/8/2023     |
+| Webpage and Screencast          | 1\. Set up and publish the web page. 2. Video demo                                                                                                                                                                | 12/9/2023     |
+| Peer Assessment                 | 1\. Brief assessment of team members. 2. Contribution summary                                                                                                                                                     | 12/9/2023     |
+| In-class Discussion             | Learning about projects presented by other groups                                                                                                                                                                 | 12/14/2023    |
