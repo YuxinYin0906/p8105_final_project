@@ -4,7 +4,8 @@ p8105_final_project
 
 ## Group Members:
 
-Fangyi Chen, fc2718 Jiying Wang, jw4489
+- Fangyi Chen, fc2718
+- Jiying Wang, jw4489
 
 ## Tentative Project Title
 
@@ -27,3 +28,10 @@ airports, weather, etc. We would also assess if the insights gained from
 ## Planned analyses / visualizations / coding challenges
 
 ## Planned timeline
+
+## Tables
+
+| First Header | Second Header | Expected Date |
+|--------------|---------------|---------------|
+| Content Cell | Content Cell  | C             |
+| Content Cell | Content Cell  | c             |

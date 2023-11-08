@@ -5,8 +5,9 @@ date: "2023-11-06"
 ---
 
 ## Group Members:
-Fangyi Chen, fc2718
-Jiying Wang, jw4489 
+
+* Fangyi Chen, fc2718
+* Jiying Wang, jw4489 
 
 ## Tentative Project Title
 
@@ -21,3 +22,11 @@ The airline industry is highly dependent on timely flight operations, and flight
 ## Planned analyses / visualizations / coding challenges
 
 ## Planned timeline
+
+Tables 
+------------------------------------------------------------
+
+First Header  | Second Header | Expected Date
+------------- | ------------- | --------------
+Content Cell  | Content Cell  | C
+Content Cell  | Content Cell  |c 
