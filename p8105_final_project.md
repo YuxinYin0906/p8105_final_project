@@ -27,6 +27,12 @@ airports, weather, etc. We would also assess if the insights gained from
 
 ## Planned analyses / visualizations / coding challenges
 
+- Planned analyses
+
+- Visualizations
+
+- Coding challenges
+
 ## Planned timeline
 
 ## Tables

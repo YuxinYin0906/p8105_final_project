@@ -21,6 +21,13 @@ The airline industry is highly dependent on timely flight operations, and flight
 
 ## Planned analyses / visualizations / coding challenges
 
+* Planned analyses
+
+
+* Visualizations
+
+* Coding challenges 
+
 ## Planned timeline
 
 Tables 
