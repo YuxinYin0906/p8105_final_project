@@ -26,6 +26,18 @@ airports, weather, etc. We would also assess if the insights gained from
 
 ## Anticipated data sources
 
+The study intends to use two data sets. The first one on-time data for
+all flights that departed NYC in 2013. The second one is hourly
+meteorological data for LGA, JFK and EWR.
+
+### Sources link
+
+- flights: RITA, Bureau of transportation statistics,
+  <https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236>
+
+- weather: ASOS download from Iowa Environmental Mesonet,
+  <https://mesonet.agron.iastate.edu/request/download.phtml>.
+
 ## Planned analyses / visualizations / coding challenges
 
 ##### Planned analyses
