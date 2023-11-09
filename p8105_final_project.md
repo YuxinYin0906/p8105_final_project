@@ -6,6 +6,7 @@ p8105_final_project
 
 - Fangyi Chen, fc2718
 - Jiying Wang, jw4489
+- Yumeng Qi, yq2378
 
 ## Tentative Project Title
 
