@@ -6,6 +6,7 @@ p8105_final_project
 
 - Fangyi Chen, fc2718
 - Jiying Wang, jw4489
+- Yumeng Qi, yq2378
 
 ## Tentative Project Title
 
@@ -23,7 +24,37 @@ airports, weather, etc. We would also assess if the insights gained from
 
 ## Intended final products
 
+- A website comprising the following pages:
+
+1)  Homepage: Provides a brief introduction to the project.
+2)  Exploratory Data Analysis Page: Offers in-depth exploration of the
+    project’s data.
+3)  Flight Delay Prediction Model Page: Presents details about the
+    developed flight delay prediction model.
+4)  Conclusions Page: Summarizes key findings and conclusions of the
+    project.
+5)  Interactive Dashboard Page: Utilizing R-Shiny, this page hosts an
+    interactive dashboard for dynamic data exploration.
+
+- A comprehensive report: A well-organized document ensuring clear and
+  concise presentation of our project, covering all aspects from
+  introduction to conclusions.
+- A brief screencast: A concise video presentation showcasing the
+  project’s key features and highlights.
+
 ## Anticipated data sources
+
+The study intends to use two data sets. The first one on-time data for
+all flights that departed NYC in 2013. The second one is hourly
+meteorological data for LGA, JFK and EWR.
+
+### Sources link
+
+- flights: RITA, Bureau of transportation statistics,
+  <https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236>
+
+- weather: ASOS download from Iowa Environmental Mesonet,
+  <https://mesonet.agron.iastate.edu/request/download.phtml>.
 
 ## Planned analyses / visualizations / coding challenges
 
