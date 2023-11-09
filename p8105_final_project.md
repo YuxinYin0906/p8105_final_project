@@ -7,6 +7,7 @@ p8105_final_project
 - Fangyi Chen, fc2718
 - Jiying Wang, jw4489
 - Yumeng Qi, yq2378
+- Si Chen, sc5126
 
 ## Tentative Project Title
 
@@ -75,6 +76,15 @@ Performance variability across different temporal ranges (from earliest
 timepoint to the most recent data) will also be examined.
 
 ##### Planned visualizations
+
+For data exploration, we plan to plot the distribution of important
+attributes such as `dep_delay`, `arr_delay`, `temp, dewep`, `humid`,
+`wind_speed`, `pressure`, `visib` using box plot and histogram. Then we
+will visualize the relationship between flight delays and
+weather-related variables using scatter plot and fitted lines. We may
+also visualize the relationship among weather variables as well as the
+delay disparity among airlines. Finally, we will visualize our model and
+predicted outcomes.
 
 ##### Planned coding challenges
 
