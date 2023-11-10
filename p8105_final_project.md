@@ -8,8 +8,12 @@ p8105_final_project
 - Jiying Wang, jw4489
 - Yumeng Qi, yq2378
 - Si Chen, sc5126
+- Yuxin Yin, yy3439
 
 ## Tentative Project Title
+
+Weather-Induced Flight Delays: An Analysis of Patterns and Predictive
+Modeling
 
 ## Motivation for this project
 
@@ -17,11 +21,12 @@ The airline industry is highly dependent on timely flight operations,
 and flight delays are a common concern for both passengers and airlines.
 Weather conditions often play a big role in causing delays. In this
 project, we aim to investigate the relationship between weather and
-flight delays using historical flight data from 2013. By understanding
-the data patterns, we would build a prediction model to predict flight
-delays based on variables including but not limited to carriers,
-airports, weather, etc. We would also assess if the insights gained from
-2013 data can be applied to 2023, which is ten years later.
+flight delays using historical flight data from 2013. Specifically, we
+would assess which pattern might cause the longest delay time. By
+understanding the data patterns, we would build a prediction model to
+predict flight delays based on variables including but not limited to
+carriers, airports, weather, etc. We would also assess if the insights
+gained from 2013 data can be applied to 2023, which is ten years later.
 
 ## Intended final products
 
@@ -91,7 +96,9 @@ predicted outcomes.
 Given the original dataset `flights` we will employ is a huge dataset
 with 336,776 entries, one of the biggest coding challenges we will
 encounter is how to, without bias, get the dataset down to a size that
-is suitable for use but still representative.
+is suitable for use but still representative. In addition, since we
+would join two datasets that share similar variables, we might have to
+deal with the many-to-many relationship when joining the datasets.
 
 ## Planned timeline
 
