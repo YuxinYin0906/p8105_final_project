@@ -113,4 +113,3 @@ write.csv(merge_data_2017, "data/merge_data_2017.csv", row.names = TRUE)
 
 
 
-
