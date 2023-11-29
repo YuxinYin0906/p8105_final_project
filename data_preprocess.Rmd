@@ -5,6 +5,38 @@ title: "Data Preprocessing"
 
 
 ```{r, message=FALSE}
+library(tidyverse)
+library(dplyr)
+```
 
+
+
+```{r}
+library("nycflights13")
+
+flights_df = flights
+
+
+
+```
+
+
+```{r}
+load("/Users/madgeniuschen/Downloads/flights.rda")
+```
+
+
+```{r}
+install.packages('nycflights')
+```
+
+```{r}
+get_flights("PDX", 2018, 6)
+```
+
+
+
+```{r}
+weather
 ```
 
