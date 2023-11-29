@@ -1,0 +1,116 @@
+---
+title: "Data Preprocessing"
+---
+
+
+## Load Packages 
+```{r, message=FALSE}
+library(tidyverse)
+library(dplyr)
+library(patchwork)
+```
+
+
+## Load Raw Data
+```{r}
+library("nycflights13")
+flights_2013 = flights |> 
+  janitor::clean_names()
+weather_2013 = weather |> 
+  janitor::clean_names()
+
+load("data/flights_2017.rda")
+load("data/weather_2017.rda")
+
+flights_2017 = flights |> 
+  janitor::clean_names()
+weather_2017 = weather |> 
+  janitor::clean_names()
+
+```
+
+
+## Examine Missingness
+```{r}
+
+missing_values = tibble(
+  column_names = colnames(weather_2017),
+  missing_percentage = colSums(is.na(weather_2017)) / nrow(weather_2017)
+)
+
+print(missing_values)
+
+
+```
+
+## Data Cleaning: 2013 dataset
+```{r}
+flights_2013_clean = 
+  flights_2013 |> 
+  drop_na() |> 
+  unique()  |> 
+  select(
+    -dep_time,
+    -arr_time,
+    -dep_delay,
+    -sched_arr_time,
+    -sched_dep_time,
+    -time_hour
+  )
+
+weather_2013_clean = 
+  weather_2013 |> 
+  select(-c("temp", "dewp", "humid")) |> 
+  drop_na() |> 
+  select(-time_hour)
+
+merge_data_2013 = merge(flights_2013_clean, weather_2013_clean, by =c("origin", 
+                                                                      "year", 
+                                                                      "month",
+                                                                      "day",
+                                                                    "hour"))
+
+```
+
+
+## Data Cleaning: 2017 dataset
+```{r}
+flights_2017_clean = 
+  flights_2017 |> 
+  drop_na() |> 
+  unique()  |> 
+  select(
+    -dep_time,
+    -arr_time,
+    -dep_delay,
+    -sched_arr_time,
+    -sched_dep_time,
+    -time_hour
+  )
+
+weather_2017_clean = 
+  weather_2017 |> 
+  select(-c("temp", "dewp", "humid")) |> 
+  drop_na() |> 
+  select(-time_hour)
+
+merge_data_2017 = merge(flights_2017_clean, weather_2017_clean, by =c("origin", 
+                                                                      "year", 
+                                                                      "month",
+                                                                      "day",
+                                                                    "hour"))
+```
+
+
+## Export to csv
+```{r}
+write.csv(merge_data_2013, "data/merge_data_2013.csv", row.names = TRUE)
+write.csv(merge_data_2017, "data/merge_data_2017.csv", row.names = TRUE)
+```
+
+
+
+
+
+
+
