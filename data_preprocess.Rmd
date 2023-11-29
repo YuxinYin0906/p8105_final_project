@@ -102,6 +102,11 @@ merge_data_2017 = merge(flights_2017_clean, weather_2017_clean, by =c("origin",
 ```
 
 
+## Export to csv
+```{r}
+write.csv(merge_data_2013, "data/merge_data_2013.csv", row.names = TRUE)
+write.csv(merge_data_2017, "data/merge_data_2017.csv", row.names = TRUE)
+```
 
 
 
