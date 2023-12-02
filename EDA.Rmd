@@ -1,0 +1,54 @@
+---
+title: "EDA"
+author: "Si Chen"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r load_library, warning = FALSE, message = FALSE}
+library(tidyr)
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(cowplot)
+
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE,
+    fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+## Load clean datasets
+
+```{r cars}
+df_2013 = 
+  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
+
+df_2017 = 
+  read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
+```
+
+
+## Data set description
+In the dataset for 2013, there are `r ncol(df_2013)` columns and `r nrow(df_2013)` rows. 
+
+## Including Plots
+
+
+```{r pressure, echo=FALSE}
+summary(df_2013$pressure)
+```
+
