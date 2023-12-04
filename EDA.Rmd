@@ -12,6 +12,7 @@ library(rvest)
 library(dplyr)
 library(cowplot)
 library(gridExtra)
+library(RColorBrewer)
 
 knitr::opts_chunk$set(
     echo = TRUE,
@@ -47,8 +48,13 @@ df_2013$month <- factor(df_2013$month, levels = 1:12, labels = month.abb[1:12])
 
 
 ### Data set description
+
 In the dataset for 2013, there are `r ncol(df_2013)` columns and `r nrow(df_2013)` rows. 
 In the dataset for 2017, there are `r ncol(df_2017)` columns and `r nrow(df_2017)` rows. 
+
+There are `r n_distinct(df_2013$carrier)` different carriers flying out of NYC airports. NYC has `r n_distinct(df_2013$origin)` different airports. There are `r n_distinct(df_2013$dest)` different destination locations to which flights fly out of NYC airports. 
+
+TBC...
 
 
 # Weather
@@ -72,6 +78,8 @@ df_2013_avg <- df_2013 %>%
   )
 
 ```
+
+
 
 ## Preciptation 2013
 
@@ -116,6 +124,7 @@ precip_line_bar =
   
 ```
 
+
 ```{r precip_delay}
 # Plot precipitation against arrival delay in a scatter plot
 precip_delay = 
@@ -126,6 +135,7 @@ precip_delay =
        y = "Arrival Delay (minutes)")
 
 ```
+
 
 ```{r precip_delay_month}
 # Average precip against average arr_delay by month
@@ -397,14 +407,51 @@ dd_hist =
 dd_hist
 ```
 
+## Distance - Arrival Delay - Destination
+
+The relationship between the distance and the average delay for each location.
+
+```{r dist_delay_dest}
+
+df_2013_dest <- 
+  df_2013 %>% 
+  group_by(dest) %>%
+  summarize(
+    count = n(),
+    dist = mean(distance, na.rm = TRUE),
+    delay = mean(arr_delay, na.rm = TRUE)
+  )
+
+```
+
+
+```{r}
+df_2013_dest
+
+ggplot(df_2013_dest, aes(dist, delay)) + 
+  geom_point(aes(size = count, color = dist),alpha = 0.5) + 
+  geom_smooth(color = 'skyblue') + 
+  geom_jitter() +
+  scale_fill_brewer(palette = "Set3") +
+  labs(title = "Distance against Arrival Delay",
+       x = "Distance",
+       y = "Arrival Delay (minutes)")
+
+```
+
+Flights tend to have more delays in short-medium distances. Long distance flights do not have as much delay.
+
+
+
 ## Arrival delay by origins
 ```{r origin_delay}
 
 df_2013 %>%
   group_by(origin) %>%
-  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n())
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
+  arrange(desc(mean_ad))
 
-# Plot violin plot of arr_delay against carrier, coloring by carrier
+# Plot violin plot of arr_delay against origin, coloring by origin
 # reversing the order from high to low
 delay_origin_box = 
   ggplot(df_2013, aes(x = reorder(origin, -arr_delay), y = arr_delay, fill = origin)) +
@@ -418,13 +465,53 @@ delay_origin_box
 ```
 
 
+## Arrival delay by Destination
+
+```{r dest_delay}
+
+df_2013 %>%
+  group_by(dest) %>%
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
+  arrange(desc(mean_ad))
+
+
+```
+
+```{r plot_dest_delay}
+# Calculate average arrival delay by destination
+avg_arr_delay_by_dest <- df_2013 %>%
+  group_by(dest) %>%
+  summarize(avg_arr_delay_dest = mean(arr_delay, na.rm = TRUE)) %>%
+  arrange(desc(avg_arr_delay_dest)) %>%
+  head(10)
+
+# Select only the top 6 destinations
+top_destinations <- avg_arr_delay_by_dest$dest
+
+# Filter the data for the top 6 destinations
+filtered_data <- df_2013 %>% filter(dest %in% top_destinations)
+
+# Create a boxplot for the top 6 destinations
+top10_dest = 
+  ggplot(filtered_data, aes(x = reorder(dest, -arr_delay), y = arr_delay, fill = dest)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Set3") +
+  labs(title = "Boxplot of Arrival Delay for Top 6 Destinations",
+       x = "Destination",
+       y = "Arrival Delay (minutes)")
+
+ top10_dest
+```
+
+
 ## Arrival delay by carriers
 
 ```{r carrier_delay}
 
 df_2013 %>%
   group_by(carrier) %>%
-  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n())
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
+  arrange(desc(mean_ad))
 
 # Plot violin plot of arr_delay against carrier, coloring by carrier
 # reversing the order from high to low
@@ -434,15 +521,136 @@ delay_carrier_box =
   labs(title = "Violin Plot of Arrival Delay by Carrier",
        x = "Carrier",
        y = "Arrival Delay (minutes)")
+
 delay_carrier_box
 ```
 
-```{r show_delay}
-grid.arrange(delay_carrier_box, delay_origin_box, ncol = 2)
 
-dd_hist
-#delay_carrier_box
-#delay_origin_box
+## Arrival Delay by Month
+
+```{r month_delay}
+
+df_2013 %>%
+  group_by(month) %>%
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
+  arrange(desc(mean_ad))
+
+# Plot violin plot of arr_delay against month, coloring by month
+# reversing the order from high to low
+delay_month_box = 
+  ggplot(df_2013, aes(x = reorder(month, -arr_delay), y = arr_delay, fill = month)) +
+  geom_violin(trim = FALSE, scale = "width", alpha = 0.7) +
+  labs(title = "Violin Plot of Arrival Delay by Month",
+       x = "Month",
+       y = "Arrival Delay (minutes)")
+
+delay_month_box
+```
+
+
+## Flight 
+
+
+## Tailnum
+
+```{r flight_delay}
+
+flights_delay <- 
+  df_2013 %>% 
+  group_by(tailnum) %>%
+  summarize(
+    count = n(),
+    avg_delay = mean(arr_delay)
+  )
 
 ```
+
+
+```{r}
+flights_delay
+
+ggplot(flights_delay, aes(avg_delay)) + 
+  geom_freqpoly(color = 'skyblue') +
+  labs(title = "Distribution of Average Arrival Delay by Flight",
+       x = "Average Arrival Delay"
+       )
+
+```
+
+```{r find_max}
+
+max_delay <- 
+  flights_delay %>% 
+  arrange(-avg_delay)
+
+max_delay
+
+```
+
+N305AS had an average delay of 196 minutes, which is about 3 hours. 
+
+
+
+## On time arrival rate for NYC airports
+
+Suppose a flight that is delayed for less than 5 minutes is basically “on time”. Assume we onsider any flight delayed for 5 minutes of more to be “delayed”
+
+```{r on_time_arr}
+df_2013 <- 
+  df_2013 %>% 
+  mutate(
+    ontime = arr_delay < 5
+    )
+
+df_2013 <- 
+  df_2013 %>%
+  mutate(
+    arr_type = ifelse(arr_delay < 5, "on time", "delayed")
+    )
+
+df_2013 %>% 
+  group_by(origin) %>% 
+  summarise(ontime_prop = sum(ontime == TRUE) / n()) %>% 
+  arrange(desc(ontime_prop))
+
+ggplot(data = df_2013, aes(x = origin, fill = arr_type)) +
+  geom_bar()+
+  scale_fill_brewer(palette = "Set3") + 
+  labs(title = "Bar Plot of On-time Arrival for NYC Airports",
+       x = "Origin",
+       y = "Count of on-time arrival")
+```
+
+The plot shows that LGA airport has the best on time arrival rate and EWR airport has the worst.
+
+
+
+## Average Speed for flight (air_time & distance)
+
+We set average speed = distance / (air_time/60) in miles/hr.
+
+```{r avg_speed}
+df_2013 <- 
+  df_2013 %>% 
+  mutate(
+    avg_speed = distance / (air_time/60)
+    )
+
+ggplot(data = df_2013, aes(x = distance, y = avg_speed, color = avg_speed)) + 
+  geom_point(alpha = .6) +
+  scale_fill_brewer(palette = "Set3") + 
+  labs(title = "Scatter Plot of Average Flight Speed against Distance",
+       x = "Distance",
+       y = "Average Flight Speed")
+
+ggplot(data = df_2013, aes(x = avg_speed, y = arr_delay, color = avg_speed)) + 
+  geom_point(alpha = .4) +
+  scale_fill_brewer(palette = "Set3") + 
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) + 
+  labs(title = "Scatter Plot of Average Flight Speed against Arrival Delay",
+       x = "Average Flight Speed",
+       y = "Arrival Delay (minutes)")
+
+```
+
 
