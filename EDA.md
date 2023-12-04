@@ -1,11 +1,9 @@
----
-title: "EDA"
-author: "Si Chen"
-date: "`r Sys.Date()`"
-output: github_document
----
+EDA
+================
+Si Chen
+2023-12-04
 
-```{r load_library, warning = FALSE, message = FALSE}
+``` r
 library(tidyr)
 library(tidyverse)
 library(rvest)
@@ -34,7 +32,7 @@ scale_fill_discrete = scale_fill_viridis_d
 
 ### Load clean datasets
 
-```{r load_data}
+``` r
 df_2013 = 
   read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
 
@@ -45,19 +43,17 @@ df_2017 =
 df_2013$month <- factor(df_2013$month, levels = 1:12, labels = month.abb[1:12])
 ```
 
-
 ### Data set description
-In the dataset for 2013, there are `r ncol(df_2013)` columns and `r nrow(df_2013)` rows. 
-In the dataset for 2017, there are `r ncol(df_2017)` columns and `r nrow(df_2017)` rows. 
 
+In the dataset for 2013, there are 19 columns and 72734 rows. In the
+dataset for 2017, there are 19 columns and 4785 rows.
 
 # Weather
 
-Visualize association between weather variables?
-aggregate by date, plot scatter plot, add fitted line (instead of by month)?
+Visualize association between weather variables? aggregate by date, plot
+scatter plot, add fitted line (instead of by month)?
 
-```{r aggregate_df_2013_month}
-
+``` r
 # Aggregate the data by month and calculate averages
 df_2013_avg <- df_2013 %>%
   group_by(month) %>%
@@ -70,53 +66,11 @@ df_2013_avg <- df_2013 %>%
     avg_pressure = mean(pressure, na.rm = TRUE),
     avg_visib = mean(visib, na.rm = TRUE)
   )
-
 ```
 
 ## Preciptation 2013
 
-```{r precip, echo=FALSE}
-# Plot precipitation against month using bar plot
-precip_bar =  
-  df_2013 %>% 
-  ggplot(aes(x = month, y = precip)) +
-  geom_bar(stat = "summary", fun = "mean", fill = "skyblue", alpha = 0.7) +
-  labs(title = "Average Precipitation by Month",
-       x = "Month",
-       y = "Precipitation (inches)")
-
-# Plot average precipitation by month in scatter plot + line
-precip_line = 
-  ggplot(df_2013, aes(x = month, y = precip)) +
-  geom_point(stat = "summary", fun = "mean", size = 3, color = "coral") +
-  geom_line(aes(group = 1), stat = "summary", fun = "mean", color = "skyblue", size = 1) +
-  labs(title = "Average Precipitation by Month",
-       x = "Month",
-       y = "Precipitation (inches)")
-
-# precipitation by month in violin plot
-precip_violin = 
-  ggplot(df_2013, aes(x = month, y = precip, color = month)) +
-  geom_violin(alpha = 0.7) +
-  labs(title = "Distribution of Precipitation by Month",
-       x = "Month",
-       y = "Precipitation (inches)")
-
-
-# Plot bar plot with line overlay
-precip_line_bar = 
-  ggplot(df_2013, aes(x = month, y = precip))  +  
-  geom_bar(aes(x=month, y=precip),stat="summary", fun = 'mean', fill="skyblue")+ 
-  geom_point(aes(x=month, y=precip), stat = "summary", fun = "mean", size = 2, color = "coral", alpha = .5) + 
-  geom_line(aes(group = 1), stat="summary", fun = 'mean', color="coral", size=1, alpha = .8)+ 
-  labs(
-    title= "Average Precipitation by Month", 
-    x="Month",
-    y="Precipitation")
-  
-```
-
-```{r precip_delay}
+``` r
 # Plot precipitation against arrival delay in a scatter plot
 precip_delay = 
   ggplot(df_2013, aes(x = precip, y = arr_delay)) +
@@ -124,10 +78,9 @@ precip_delay =
   labs(title = "Scatter Plot of Precipitation against Arrival Delay",
        x = "Precipitation (inches)",
        y = "Arrival Delay (minutes)")
-
 ```
 
-```{r precip_delay_month}
+``` r
 # Average precip against average arr_delay by month
 precip_delay_month = 
   ggplot(df_2013_avg, aes(x = avg_precip, y = avg_arr_delay, color = month)) +
@@ -136,29 +89,42 @@ precip_delay_month =
   labs(title = "Scatter Plot of Precipitation against Arrival Delay",
        x = "Precipitation (inches)",
        y = "Arrival Delay (minutes)")
-
 ```
 
-
-```{r show_precip}
-
+``` r
 # grid.arrange(precip_line_bar, precip_delay, nrow = 2)
 # precip_violin
 # precip_line
 # precip_bar
 summary(df_2013$precip)
-
-precip_line_bar
-precip_delay
-precip_delay_month
-
 ```
 
+    ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+    ## 0.000000 0.000000 0.000000 0.001352 0.000000 0.530000
+
+``` r
+precip_line_bar
+```
+
+<img src="EDA_files/figure-gfm/show_precip-1.png" width="90%" />
+
+``` r
+precip_delay
+```
+
+<img src="EDA_files/figure-gfm/show_precip-2.png" width="90%" />
+
+``` r
+precip_delay_month
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="EDA_files/figure-gfm/show_precip-3.png" width="90%" />
 
 ## Pressure
 
-```{r plot_pressure}
-
+``` r
 # Plot average pressure by month in line plot
 pressure_line = 
   ggplot(df_2013, aes(x = month, y = pressure))  +  
@@ -186,23 +152,38 @@ pressure_delay_month =
   labs(title = "Scatter Plot of Average Pressure against Arrival Delay by Month",
        x = "Avg Monthly Pressure",
        y = "Avg Arrival Delay (minutes)")
-
 ```
 
-
-```{r show_pressure}
+``` r
 summary(df_2013$pressure)
-
-pressure_line
-pressure_delay
-pressure_delay_month
-
 ```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   983.8  1010.8  1015.4  1015.6  1020.4  1040.4
+
+``` r
+pressure_line
+```
+
+<img src="EDA_files/figure-gfm/show_pressure-1.png" width="90%" />
+
+``` r
+pressure_delay
+```
+
+<img src="EDA_files/figure-gfm/show_pressure-2.png" width="90%" />
+
+``` r
+pressure_delay_month
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="EDA_files/figure-gfm/show_pressure-3.png" width="90%" />
 
 ## Visibility
 
-```{r visib}
-
+``` r
 # Plot average Visibility by month in line plot
 visib_line = 
   ggplot(df_2013, aes(x = month, y = visib))  +  
@@ -230,24 +211,38 @@ visib_delay_month =
   labs(title = "Scatter Plot of Average Visibility against Arrival Delay by Month",
        x = "Avg Monthly Visibility",
        y = "Avg Arrival Delay (minutes)")
-
-
 ```
 
-
-```{r show_visib}
+``` r
 summary(df_2013$visib)
-
-visib_line
-visib_delay
-visib_delay_month
-
 ```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   0.120  10.000  10.000   9.803  10.000  10.000
+
+``` r
+visib_line
+```
+
+<img src="EDA_files/figure-gfm/show_visib-1.png" width="90%" />
+
+``` r
+visib_delay
+```
+
+<img src="EDA_files/figure-gfm/show_visib-2.png" width="90%" />
+
+``` r
+visib_delay_month
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="EDA_files/figure-gfm/show_visib-3.png" width="90%" />
 
 ## Wind Direction
 
-```{r plot_wind_dir}
-
+``` r
 # Plot average wind_dir by month in line plot
 wind_dir_line = 
   ggplot(df_2013, aes(x = month, y = wind_dir))  +  
@@ -275,22 +270,38 @@ wind_dir_delay_month =
   labs(title = "Scatter Plot of Average Wind Direction against Arrival Delay by Month",
        x = "Avg Monthly Wind Direction",
        y = "Avg Arrival Delay (minutes)")
-
 ```
 
-```{r show_wind_dir}
-
+``` r
 summary(df_2013$wind_dir)
-
-wind_dir_line
-wind_dir_delay
-wind_dir_delay_month
-
 ```
 
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##    10.0   220.0   280.0   253.9   310.0   360.0
+
+``` r
+wind_dir_line
+```
+
+<img src="EDA_files/figure-gfm/show_wind_dir-1.png" width="90%" />
+
+``` r
+wind_dir_delay
+```
+
+<img src="EDA_files/figure-gfm/show_wind_dir-2.png" width="90%" />
+
+``` r
+wind_dir_delay_month
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="EDA_files/figure-gfm/show_wind_dir-3.png" width="90%" />
 
 ## Wind Speed
-```{r plot_wind_speed}
+
+``` r
 # Plot average wind_speed by month in line plot
 wind_speed_line = 
   ggplot(df_2013, aes(x = month, y = wind_speed))  +  
@@ -318,23 +329,38 @@ wind_speed_delay_month =
   labs(title = "Scatter Plot of Average Wind Speed against Arrival Delay by Month",
        x = "Avg Monthly Wind Speed",
        y = "Avg Arrival Delay (minutes)")
-
 ```
 
-
-```{r show_wind_speed}
-
+``` r
 summary(df_2013$wind_speed)
-
-wind_speed_line
-wind_speed_delay
-wind_speed_delay_month
-
 ```
 
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   4.603  12.659  16.111  16.523  19.563  39.127
+
+``` r
+wind_speed_line
+```
+
+<img src="EDA_files/figure-gfm/show_wind_speed-1.png" width="90%" />
+
+``` r
+wind_speed_delay
+```
+
+<img src="EDA_files/figure-gfm/show_wind_speed-2.png" width="90%" />
+
+``` r
+wind_speed_delay_month
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="EDA_files/figure-gfm/show_wind_speed-3.png" width="90%" />
 
 ## Wind Gust
-```{r plot_wind_gust}
+
+``` r
 # Plot average wind_gust by month in line plot
 wind_gust_line = 
   ggplot(df_2013, aes(x = month, y = wind_gust))  +  
@@ -362,31 +388,47 @@ wind_gust_delay_month =
   labs(title = "Scatter Plot of Average Wind Gust against Arrival Delay by Month",
        x = "Avg Monthly Wind Gust",
        y = "Avg Arrival Delay (minutes)")
-
-
 ```
 
-```{r show_wind_gust}
-
+``` r
 summary(df_2013$wind_gust)
-
-wind_gust_line
-wind_gust_delay
-wind_gust_delay_month
-
 ```
 
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   16.11   20.71   24.17   24.91   27.62   66.75
 
+``` r
+wind_gust_line
+```
 
+<img src="EDA_files/figure-gfm/show_wind_gust-1.png" width="90%" />
+
+``` r
+wind_gust_delay
+```
+
+<img src="EDA_files/figure-gfm/show_wind_gust-2.png" width="90%" />
+
+``` r
+wind_gust_delay_month
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+<img src="EDA_files/figure-gfm/show_wind_gust-3.png" width="90%" />
 
 # Flights
 
 ## Arrival Delay Summary
 
-```{r delay_summary}
-
+``` r
 summary(df_2013$arr_delay)
+```
 
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ## -74.000 -16.000  -4.000   7.287  14.000 783.000
+
+``` r
 dd_hist = 
   ggplot(data = df_2013, aes(x = arr_delay)) +
   geom_histogram(fill = 'skyblue', color = 'coral')+
@@ -397,13 +439,26 @@ dd_hist =
 dd_hist
 ```
 
-## Arrival delay by origins
-```{r origin_delay}
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
+<img src="EDA_files/figure-gfm/delay_summary-1.png" width="90%" />
+
+## Arrival delay by origins
+
+``` r
 df_2013 %>%
   group_by(origin) %>%
   summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n())
+```
 
+    ## # A tibble: 3 × 5
+    ##   origin mean_ad sd_ad IQR_ad     n
+    ##   <chr>    <dbl> <dbl>  <dbl> <int>
+    ## 1 EWR       9.27  43.8     32 28344
+    ## 2 JFK       6.39  40.8     29 19212
+    ## 3 LGA       5.74  42.1     29 25178
+
+``` r
 # Plot violin plot of arr_delay against carrier, coloring by carrier
 # reversing the order from high to low
 delay_origin_box = 
@@ -414,18 +469,39 @@ delay_origin_box =
        y = "Arrival Delay (minutes)")
 
 delay_origin_box
-
 ```
 
+<img src="EDA_files/figure-gfm/origin_delay-1.png" width="90%" />
 
 ## Arrival delay by carriers
 
-```{r carrier_delay}
-
+``` r
 df_2013 %>%
   group_by(carrier) %>%
   summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n())
+```
 
+    ## # A tibble: 16 × 5
+    ##    carrier mean_ad sd_ad IQR_ad     n
+    ##    <chr>     <dbl> <dbl>  <dbl> <int>
+    ##  1 9E         8.29  45.5   34    3395
+    ##  2 AA         1.45  43.0   30    7060
+    ##  3 AS        -5.63  41.2   29     121
+    ##  4 B6        10.1   40.3   30   10040
+    ##  5 DL         1.27  39.2   26   10388
+    ##  6 EV        16.7   48.1   41   12310
+    ##  7 F9        22.4   61.0   34     189
+    ##  8 FL        16.7   47.5   28     823
+    ##  9 HA        -8.22  36.1   35.5    64
+    ## 10 MQ        10.8   41.0   29    5999
+    ## 11 OO        10     26.6   35       5
+    ## 12 UA         3.59  39.8   28   13580
+    ## 13 US         2.31  33.5   23    4629
+    ## 14 VX         1.13  44.6   28     965
+    ## 15 WN         8.69  43.7   30    3008
+    ## 16 YV        21.4   57.1   54.8   158
+
+``` r
 # Plot violin plot of arr_delay against carrier, coloring by carrier
 # reversing the order from high to low
 delay_carrier_box = 
@@ -437,12 +513,23 @@ delay_carrier_box =
 delay_carrier_box
 ```
 
-```{r show_delay}
+<img src="EDA_files/figure-gfm/carrier_delay-1.png" width="90%" />
+
+``` r
 grid.arrange(delay_carrier_box, delay_origin_box, ncol = 2)
-
-dd_hist
-#delay_carrier_box
-#delay_origin_box
-
 ```
 
+<img src="EDA_files/figure-gfm/show_delay-1.png" width="90%" />
+
+``` r
+dd_hist
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+<img src="EDA_files/figure-gfm/show_delay-2.png" width="90%" />
+
+``` r
+#delay_carrier_box
+#delay_origin_box
+```
