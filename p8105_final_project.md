@@ -6,8 +6,14 @@ p8105_final_project
 
 - Fangyi Chen, fc2718
 - Jiying Wang, jw4489
+- Yumeng Qi, yq2378
+- Si Chen, sc5126
+- Yuxin Yin, yy3439
 
 ## Tentative Project Title
+
+Weather-Induced Flight Delays: An Analysis of Patterns and Predictive
+Modeling
 
 ## Motivation for this project
 
@@ -15,15 +21,46 @@ The airline industry is highly dependent on timely flight operations,
 and flight delays are a common concern for both passengers and airlines.
 Weather conditions often play a big role in causing delays. In this
 project, we aim to investigate the relationship between weather and
-flight delays using historical flight data from 2013. By understanding
-the data patterns, we would build a prediction model to predict flight
-delays based on variables including but not limited to carriers,
-airports, weather, etc. We would also assess if the insights gained from
-2013 data can be applied to 2023, which is ten years later.
+flight delays using historical flight data from 2013. Specifically, we
+would assess which pattern might cause the longest delay time. By
+understanding the data patterns, we would build a prediction model to
+predict flight delays based on variables including but not limited to
+carriers, airports, weather, etc. We would also assess if the insights
+gained from 2013 data can be applied to 2023, which is ten years later.
 
 ## Intended final products
 
+- A website comprising the following pages:
+
+1)  Homepage: Provides a brief introduction to the project.
+2)  Exploratory Data Analysis Page: Offers in-depth exploration of the
+    project’s data.
+3)  Flight Delay Prediction Model Page: Presents details about the
+    developed flight delay prediction model.
+4)  Conclusions Page: Summarizes key findings and conclusions of the
+    project.
+5)  Interactive Dashboard Page: Utilizing R-Shiny, this page hosts an
+    interactive dashboard for dynamic data exploration.
+
+- A comprehensive report: A well-organized document ensuring clear and
+  concise presentation of our project, covering all aspects from
+  introduction to conclusions.
+- A brief screencast: A concise video presentation showcasing the
+  project’s key features and highlights.
+
 ## Anticipated data sources
+
+The study intends to use two data sets. The first one on-time data for
+all flights that departed NYC in 2013. The second one is hourly
+meteorological data for LGA, JFK and EWR.
+
+### Sources link
+
+- flights: RITA, Bureau of transportation statistics,
+  <https://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236>
+
+- weather: ASOS download from Iowa Environmental Mesonet,
+  <https://mesonet.agron.iastate.edu/request/download.phtml>.
 
 ## Planned analyses / visualizations / coding challenges
 
@@ -45,12 +82,23 @@ timepoint to the most recent data) will also be examined.
 
 ##### Planned visualizations
 
+For data exploration, we plan to plot the distribution of important
+attributes such as `dep_delay`, `arr_delay`, `temp, dewep`, `humid`,
+`wind_speed`, `pressure`, `visib` using box plot and histogram. Then we
+will visualize the relationship between flight delays and
+weather-related variables using scatter plot and fitted lines. We may
+also visualize the relationship among weather variables as well as the
+delay disparity among airlines. Finally, we will visualize our model and
+predicted outcomes.
+
 ##### Planned coding challenges
 
 Given the original dataset `flights` we will employ is a huge dataset
 with 336,776 entries, one of the biggest coding challenges we will
 encounter is how to, without bias, get the dataset down to a size that
-is suitable for use but still representative.
+is suitable for use but still representative. In addition, since we
+would join two datasets that share similar variables, we might have to
+deal with the many-to-many relationship when joining the datasets.
 
 ## Planned timeline
 
