@@ -1,7 +1,7 @@
 EDA
 ================
 Si Chen
-2023-12-04
+2023-12-05
 
 ``` r
 library(tidyr)
@@ -36,18 +36,28 @@ scale_fill_discrete = scale_fill_viridis_d
 ``` r
 df_2013 = 
   read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
+```
 
+    ## New names:
+    ## • `` -> `...1`
+
+``` r
 df_2017 = 
   read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
+```
 
+    ## New names:
+    ## • `` -> `...1`
+
+``` r
 # Convert month to factor with levels in ascending order and labels as month abbreviations
 df_2013$month <- factor(df_2013$month, levels = 1:12, labels = month.abb[1:12])
 ```
 
 ### Data set description
 
-In the dataset for 2013, there are 19 columns and 72734 rows. In the
-dataset for 2017, there are 19 columns and 4785 rows.
+In the dataset for 2013, there are 20 columns and 72734 rows. In the
+dataset for 2017, there are 20 columns and 4785 rows.
 
 There are 16 different carriers flying out of NYC airports. NYC has 3
 different airports. There are 104 different destination locations to
@@ -446,7 +456,8 @@ dd_hist =
 dd_hist
 ```
 
-    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+    ## `stat_bin()` using `bins = 30`. Pick better value
+    ## with `binwidth`.
 
 <img src="EDA_files/figure-gfm/delay_summary-1.png" width="90%" />
 
@@ -496,7 +507,8 @@ ggplot(df_2013_dest, aes(dist, delay)) +
        y = "Arrival Delay (minutes)")
 ```
 
-    ## `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+    ## `geom_smooth()` using method = 'loess' and formula =
+    ## 'y ~ x'
 
 <img src="EDA_files/figure-gfm/unnamed-chunk-1-1.png" width="90%" />
 
@@ -711,7 +723,8 @@ ggplot(flights_delay, aes(avg_delay)) +
        )
 ```
 
-    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+    ## `stat_bin()` using `bins = 30`. Pick better value
+    ## with `binwidth`.
 
 <img src="EDA_files/figure-gfm/unnamed-chunk-2-1.png" width="90%" />
 
