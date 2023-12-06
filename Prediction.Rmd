@@ -10,18 +10,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Load clean datasets
+
 ```{r libraries}
 library(tidyverse)
 library(tidymodels)
 library(yardstick)
+library(MASS)
 ```
-# contruct a model 
 
 ```{r load_data}
 df_2013_raw =  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
 df_2017_raw = read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
 
-df_2013 = df_2013_raw |>
+df_2013_raw = df_2013_raw |>
   mutate(if_delay = if_else(arr_delay >0,1,0),
          if_delay = factor(if_delay),
          #carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
@@ -30,11 +31,15 @@ df_2013 = df_2013_raw |>
          arrival_date = date(arrival_date)
          ) |>
   filter(!(dest %in% setdiff(unique(df_2013_raw$dest),unique(df_2017_raw$dest))),
-         !(carrier %in% setdiff(unique(df_2013_raw$carrier),unique(df_2017_raw$carrier)))) |>
-    select(-tailnum,-arr_delay,
-           -year, -month, -day) 
+         !(carrier %in% setdiff(unique(df_2013_raw$carrier),unique(df_2017_raw$carrier))))
 
-df_2017 = df_2017_raw |>
+df_2013_mlr = df_2013_raw |>
+   dplyr::select(-`...1`,-tailnum,-if_delay,
+           -year, -month, -day) 
+df_2013 = df_2013_raw |>
+  dplyr::select(-`...1`,-tailnum,-arr_delay,
+           -year, -month, -day) 
+df_2017_raw = df_2017_raw |>
   mutate(if_delay = if_else(arr_delay >0,1,0),
          if_delay = factor(if_delay),
          #carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
@@ -42,9 +47,15 @@ df_2017 = df_2017_raw |>
          arrival_date = paste(year,"-",month,"-",day, sep = ""),
          arrival_date = date(arrival_date))|>
   filter(!(dest %in% setdiff(unique(df_2017_raw$dest),unique(df_2013_raw$dest))),
-         !(carrier %in% setdiff(unique(df_2017_raw$carrier),unique(df_2013_raw$carrier)))) |>
-  select(-tailnum,-arr_delay,
+         !(carrier %in% setdiff(unique(df_2017_raw$carrier),unique(df_2013_raw$carrier)))) 
+
+df_2017_mlr = df_2017_raw |>
+  dplyr::select(-`...1`,-tailnum,-if_delay,
            -year, -month, -day) 
+df_2017 = df_2017_raw |>
+    dplyr::select(-`...1`,-tailnum,-arr_delay,
+           -year, -month, -day) 
+
 # bool the target value
 # bin the factor values with moderate amount of unique values
 # drop some observations with too many of unique values
@@ -55,6 +66,23 @@ df_2017 = df_2017_raw |>
 ```{r skimr}
 skimr::skim(df_2013)
 skimr::skim(df_2017)
+```
+# construct a MLR model
+
+```{r,fig.height=10}
+fit = lm(arr_delay ~ . , data = df_2013_mlr)
+stepAIC(fit, direction="both")
+
+fit_AIC = lm(formula = arr_delay ~ origin + hour + carrier + flight + dest + 
+    air_time + distance + wind_dir + pressure + visib + arrival_date, 
+    data = df_2013_mlr)
+summary(fit_AIC)
+coeff <- tidy(fit_AIC) %>% 
+  arrange(desc(abs(estimate))) %>% 
+  filter(abs(estimate) > 0.5) 
+ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + geom_col() + coord_flip()+
+  theme(legend.position = "none")
+
 ```
 
 # Construct a logistic regression
