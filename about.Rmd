@@ -1,7 +1,13 @@
 ---
-title: "about"
-output: html_document
-date: "2023-12-06"
+title: "About the Project"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cerulean
 ---
 
-# About
+# Title
+
+# Motivation
+
