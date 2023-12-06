@@ -1,0 +1,11 @@
+---
+title: "P8105 Final Project"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cerulean
+---
+
+# P8105 Final Project
+
