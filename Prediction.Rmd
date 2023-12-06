@@ -24,24 +24,26 @@ df_2017_raw = read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
 df_2013 = df_2013_raw |>
   mutate(if_delay = if_else(arr_delay >0,1,0),
          if_delay = factor(if_delay),
-         carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
-        # month = factor(month,levels = 1:12, labels = month.abb[1:12]),
+         #carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
+         #month = factor(month,levels = 1:12, labels = month.abb[1:12]),
          arrival_date = paste(year,"-",month,"-",day, sep = ""),
          arrival_date = date(arrival_date)
          ) |>
-  filter(!(dest %in% setdiff(unique(df_2013_raw$dest),unique(df_2017_raw$dest)))) |>
-    select(-carrier,-tailnum,-arr_delay,
+  filter(!(dest %in% setdiff(unique(df_2013_raw$dest),unique(df_2017_raw$dest))),
+         !(carrier %in% setdiff(unique(df_2013_raw$carrier),unique(df_2017_raw$carrier)))) |>
+    select(-tailnum,-arr_delay,
            -year, -month, -day) 
 
 df_2017 = df_2017_raw |>
   mutate(if_delay = if_else(arr_delay >0,1,0),
          if_delay = factor(if_delay),
-         carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
+         #carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
          #month = factor(month,levels = 1:12, labels = month.abb[1:12])
          arrival_date = paste(year,"-",month,"-",day, sep = ""),
          arrival_date = date(arrival_date))|>
-  filter(!(dest %in% setdiff(unique(df_2017_raw$dest),unique(df_2013_raw$dest)))) |>
-  select(-carrier,-tailnum,-arr_delay,
+  filter(!(dest %in% setdiff(unique(df_2017_raw$dest),unique(df_2013_raw$dest))),
+         !(carrier %in% setdiff(unique(df_2017_raw$carrier),unique(df_2013_raw$carrier)))) |>
+  select(-tailnum,-arr_delay,
            -year, -month, -day) 
 # bool the target value
 # bin the factor values with moderate amount of unique values
@@ -55,116 +57,9 @@ skimr::skim(df_2013)
 skimr::skim(df_2017)
 ```
 
-```{r}
-# Split data into train and test
-set.seed(421)
-
-train <- df_2013
-test <- df_2017
-
-# Train a logistic regression model
-model <- logistic_reg(mixture = double(1), penalty = double(1)) %>%
-  set_engine("glmnet") %>%
-  set_mode("classification") %>%
-  fit(if_delay ~ ., data = train)
-
-# Model summary
-tidy(model)
-# Class Predictions
-pred_class <- predict(model,
-                      new_data = test,
-                      type = "class")
-
-# Class Probabilities
-pred_proba <- predict(model,
-                      new_data = test,
-                      type = "prob")
-results <- test %>%
-           dplyr::select(if_delay) %>%
-           bind_cols(pred_class, pred_proba)
-
-
-accuracy(results, truth = if_delay, estimate = .pred_class)
-```
-
-
-## Hyper-Tuning
+# Construct a logistic regression
 
 ```{r}
-# Split data into train and test
-set.seed(421)
-
-train = df_2013
-test = df_2017
-
-# Define the logistic regression model with penalty and mixture hyperparameters
-log_reg <- logistic_reg(mixture = tune(), penalty = tune(), engine = "glmnet")
-# We’ll set the penalty argument to tune() as a placeholder for now. This is a model hyperparameter that we will tune to find the best value for making predictions with our data. Setting mixture to a value of one means that the glmnet model will potentially remove irrelevant predictors and choose a simpler model.
-# Define the grid search for the hyperparameters
-grid <- grid_regular(mixture(), penalty(), levels = c(mixture = 4, penalty = 3))
-
-# Define the workflow for the model
-log_reg_wf <- workflow() %>%
-  add_model(log_reg) %>%
-  add_formula(if_delay ~ .)
-
-# Define the resampling method for the grid search
-folds <- vfold_cv(train, v = 5)
-
-# Tune the hyperparameters using the grid search
-log_reg_tuned <- tune_grid(
-  log_reg_wf,
-  resamples = folds,
-  grid = grid,
-  control = control_grid(save_pred = TRUE)
-)
-
-select_best(log_reg_tuned, metric = "roc_auc")
-```
-
-## Evaluation Metrics
-
-```{r}
-# Fit the model using the optimal hyperparameters
-log_reg_final <- logistic_reg(penalty = 0.0000000001, mixture = 1) %>%
-                 set_engine("glmnet") %>%
-                 set_mode("classification") %>%
-                 fit(if_delay~., data = train)
-
-# Evaluate the model performance on the testing set
-pred_class <- predict(log_reg_final,
-                      new_data = test,
-                      type = "class")
-results <- test %>%
-  dplyr::select(if_delay) %>%
-  bind_cols(pred_class, pred_proba)
-
-# Create confusion matrix
-conf_mat(results, truth = if_delay,
-         estimate = .pred_class)
-precision(results, truth = if_delay,
-          estimate = .pred_class)
-recall(results, truth = if_delay,
-          estimate = .pred_class)
-# Calculate AUC
-roc_curve_results <- roc(results$if_delay, results$.pred_0)
-auc_results <- auc(roc_curve_results)
-
-
-# Assuming 'results' contains the predicted values and 'if_delay' contains the true values
-# The 'results' data frame should have a column named '.pred' containing predicted values
-# Plot ROC curve
-plot(roc_curve_results, main = paste("ROC Curve (AUC =", round(auc_results, 2), ")"))
-coeff <- tidy(log_reg_final) %>% 
-  arrange(desc(abs(estimate))) %>% 
-  filter(abs(estimate) > 0.5)
-ggplot(coeff, aes(x = term, y = estimate, fill = term)) + geom_col() + coord_flip()
-```
-
-# following tidymodels
-
-```{r}
-
 val_set <- validation_split(df_2013, 
                             strata = if_delay, 
                             prop = 0.80)
@@ -216,7 +111,7 @@ top_models <-
   arrange(penalty) 
 top_models
 
-
+# best paramters
 lr_best <- 
   lr_res %>% 
   collect_metrics() %>% 
@@ -228,11 +123,21 @@ lr_auc <-
   collect_predictions(parameters = lr_best) %>% 
   roc_curve(if_delay, .pred_0) %>% 
   mutate(model = "Logistic Regression")
+autoplot(lr_auc)
+# calculate auc
 lr_res %>% 
   collect_predictions(parameters = lr_best) %>% 
   roc_auc(if_delay, .pred_0)
 
-autoplot(lr_auc)
+# Fit the model using the optimal hyperparameters
+log_reg_final <- logistic_reg(penalty = 0.000127, mixture = 1) %>%
+                 set_engine("glmnet") %>%
+                 set_mode("classification") %>%
+                 fit(if_delay~., data = df_2013)
+coeff <- tidy(log_reg_final) %>% 
+  arrange(desc(abs(estimate))) %>% 
+  filter(abs(estimate) > 0.5)
+ggplot(coeff, aes(x = term, y = estimate, fill = term)) + geom_col() + coord_flip()
 
 
 ```
