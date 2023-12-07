@@ -12,8 +12,10 @@ navbar:
     - text: "Analysis"
       href: project.html
       menu:
+      - text: "Data Cleaning"
+        href: data_preprocess.html
       - text: "Data Souce"
-        href: EDA.html
+        href: data_preprocess.html
       - text: "Exploratory Data Analysis"
         href: EDA.html
     - icon: fa-envelope fa-lg
