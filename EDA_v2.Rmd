@@ -1,0 +1,21 @@
+---
+title: "EDA v2"
+author: "Fangyi"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+
+```{r load_library, warning = FALSE, message = FALSE}
+library(tidyr)
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(cowplot)
+library(gridExtra)
+library(RColorBrewer)
+
+```
+
+
+
