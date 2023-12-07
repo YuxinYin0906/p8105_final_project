@@ -1,5 +1,6 @@
 ---
-title: "P8105 Final Project"
+title: "Weather-Induced Flight Delays: An Analysis of Patterns and Predictive Modeling
+"
 output: 
   html_document:
     toc: true
@@ -7,5 +8,17 @@ output:
     theme: cerulean
 ---
 
-# P8105 Final Project
+# Introduction
 
+
+
+# Motivation
+
+
+
+# Group Members
+* Fangyi Chen, fc2718
+* Jiying Wang, jw4489 
+* Yumeng Qi, yq2378
+* Si Chen, sc5126
+* Yuxin Yin, yy3439
