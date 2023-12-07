@@ -18,4 +18,4 @@ navbar:
       href: http://github.com/<YuxinYin0906>/
 output:
   html_document:
-    theme: cerulean
+    theme: journal
