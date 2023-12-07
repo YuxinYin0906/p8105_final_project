@@ -1,0 +1,131 @@
+---
+title: "Random Forest"
+author: "Jiying Wang"
+date: "2023-12-06"
+output: github_document
+---
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(randomForest)
+library(pROC)
+library(caret)
+library(ggplot2)
+```
+
+
+```{r}
+# Load and clean dataset
+df_2013_raw =  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
+df_2017_raw = read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
+
+df_2013 = df_2013_raw |>
+  mutate(if_delay = if_else(arr_delay >0,1,0),
+         if_delay = factor(if_delay),
+         carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
+         month = factor(month,levels = 1:12, labels = month.abb[1:12])
+         ) |>
+  filter(!(dest %in% setdiff(unique(df_2013_raw$dest),unique(df_2017_raw$dest)))) |>
+    select(-`...1`,-carrier,-tailnum,-arr_delay) 
+
+df_2017 = df_2017_raw |>
+  mutate(if_delay = if_else(arr_delay >0,1,0),
+         if_delay = factor(if_delay),
+         carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
+         month = factor(month,levels = 1:12, labels = month.abb[1:12]))|>
+  filter(!(dest %in% setdiff(unique(df_2017_raw$dest),unique(df_2013_raw$dest)))) |>
+  select(-`...1`,-carrier,-tailnum,-arr_delay) 
+```
+
+```{r skimr}
+skimr::skim(df_2013)
+skimr::skim(df_2017)
+```
+
+```{r}
+# Split data into train and test
+set.seed(123)
+
+train = df_2013
+test = df_2017
+train$if_delay = as.factor(train$if_delay)
+test$if_delay = as.factor(test$if_delay)
+
+levels(train$if_delay)
+```
+
+```{r}
+# Rename factor levels
+levels(train$if_delay) = c("Delay0", "Delay1")
+levels(test$if_delay) = c("Delay0", "Delay1")
+
+# Train a random forest model with hyperparameter tuning
+tune_grid = expand.grid(mtry = seq(2, 18, by = 1))
+
+control = trainControl(method="cv", number = 5, classProbs = TRUE, summaryFunction = twoClassSummary) # 5-fold cross-validation
+rf_model_tuned = train(if_delay ~ ., data = train, method = "rf", 
+                        tuneGrid = tune_grid, trControl = control, ntree = 100, metric = "ROC")
+
+print(rf_model_tuned)
+```
+
+```{r}
+predictions = predict(rf_model_tuned, newdata = test, type = "raw")
+probabilities = predict(rf_model_tuned, newdata = test, type = "prob")
+
+test$predicted_class = predictions
+test$prob_0 = probabilities[, 1]
+test$prob_1 = probabilities[, 2]
+
+levels(test$predicted_class) = levels(test$if_delay)
+confusion_matrix = confusionMatrix(test$predicted_class, test$if_delay)
+print(confusion_matrix)
+cm = confusion_matrix$table
+cm_melted = as.data.frame(as.table(cm))
+colnames(cm_melted) = c("Actual", "Predicted", "Frequency")
+ggplot(cm_melted, aes(x = Actual, y = Predicted, fill = Frequency)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Frequency), vjust = 1) +
+  scale_fill_gradient(low = "white", high = "blue") +
+  theme_minimal() +
+  labs(x = 'Predicted', y = 'Actual', fill = 'Frequency')
+accuracy = confusion_matrix$overall['Accuracy']
+precision = posPredValue(test$predicted_class, test$if_delay)
+recall = sensitivity(test$predicted_class, test$if_delay)
+f1_score = (2 * precision * recall) / (precision + recall)
+roc_curve_results = roc(test$if_delay, test$prob_1)
+auc_results = auc(roc_curve_results)
+plot(roc_curve_results, main = paste("ROC Curve (AUC =", round(auc_results, 2), ")"))
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Recall:", recall))
+print(paste("F1 Score:", f1_score))
+print(paste("AUC:", auc_results))
+```
+
+
+```{r}
+# Filtering out features below the threshold
+threshold = 500 
+importance = as.data.frame(importance(rf_model_tuned$finalModel))
+importance$Feature = row.names(importance)
+filtered_importance = importance[importance$MeanDecreaseGini > threshold, ]
+
+# Generating graph with filtered data
+ggplot(filtered_importance, aes(x = reorder(Feature, MeanDecreaseGini), y = MeanDecreaseGini)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  xlab("Feature") +
+  ylab("Importance") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Feature Importance in Random Forest Model")
+```
+
+
+
+
+
+
+
+

@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jiying Wang" />
+
+<meta name="date" content="2023-12-06" />
+
+<title>Random Forest</title>
+
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cerulean.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="about.html">About</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="about.html">Statistical Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="mailto:&lt;you@youremail.com&gt;">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="http://github.com/&lt;YOUR_GH_NAME&gt;/">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Random Forest</h1>
+<h4 class="author">Jiying Wang</h4>
+<h4 class="date">2023-12-06</h4>
+
+</div>
+
+
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr     1.1.4     ✔ readr     2.1.4
+## ✔ forcats   1.0.0     ✔ stringr   1.5.1
+## ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
+## ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+## ✔ purrr     1.0.2     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+<pre class="r"><code>library(tidymodels)</code></pre>
+<pre><code>## ── Attaching packages ────────────────────────────────────── tidymodels 1.1.1 ──
+## ✔ broom        1.0.5     ✔ rsample      1.2.0
+## ✔ dials        1.2.0     ✔ tune         1.1.2
+## ✔ infer        1.0.5     ✔ workflows    1.1.3
+## ✔ modeldata    1.2.0     ✔ workflowsets 1.0.1
+## ✔ parsnip      1.1.1     ✔ yardstick    1.2.0
+## ✔ recipes      1.0.8     
+## ── Conflicts ───────────────────────────────────────── tidymodels_conflicts() ──
+## ✖ scales::discard() masks purrr::discard()
+## ✖ dplyr::filter()   masks stats::filter()
+## ✖ recipes::fixed()  masks stringr::fixed()
+## ✖ dplyr::lag()      masks stats::lag()
+## ✖ yardstick::spec() masks readr::spec()
+## ✖ recipes::step()   masks stats::step()
+## • Learn how to get started at https://www.tidymodels.org/start/</code></pre>
+<pre class="r"><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.7-1.1
+## Type rfNews() to see new features/changes/bug fixes.
+## 
+## Attaching package: &#39;randomForest&#39;
+## 
+## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine
+## 
+## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     margin</code></pre>
+<pre class="r"><code>library(pROC)</code></pre>
+<pre><code>## Type &#39;citation(&quot;pROC&quot;)&#39; for a citation.
+## 
+## Attaching package: &#39;pROC&#39;
+## 
+## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     cov, smooth, var</code></pre>
+<pre class="r"><code>library(caret)</code></pre>
+<pre><code>## Loading required package: lattice
+## 
+## Attaching package: &#39;caret&#39;
+## 
+## The following objects are masked from &#39;package:yardstick&#39;:
+## 
+##     precision, recall, sensitivity, specificity
+## 
+## The following object is masked from &#39;package:purrr&#39;:
+## 
+##     lift</code></pre>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<pre class="r"><code># Load and clean dataset
+df_2013_raw =  read_csv(&quot;data/merge_data_2013.csv&quot;, show_col_types = FALSE)</code></pre>
+<pre><code>## New names:
+## • `` -&gt; `...1`</code></pre>
+<pre class="r"><code>df_2017_raw = read_csv(&quot;data/merge_data_2017.csv&quot;, show_col_types = FALSE)</code></pre>
+<pre><code>## New names:
+## • `` -&gt; `...1`</code></pre>
+<pre class="r"><code>df_2013 = df_2013_raw |&gt;
+  mutate(if_delay = if_else(arr_delay &gt;0,1,0),
+         if_delay = factor(if_delay),
+         carrier_bin = if_else(!(carrier %in% c(&#39;UA&#39;,&#39;EV&#39;,&#39;DL&#39;,&#39;B6&#39;)),&#39;Others&#39;,carrier),
+         month = factor(month,levels = 1:12, labels = month.abb[1:12])
+         ) |&gt;
+  filter(!(dest %in% setdiff(unique(df_2013_raw$dest),unique(df_2017_raw$dest)))) |&gt;
+    select(-`...1`,-carrier,-tailnum,-arr_delay) 
+
+df_2017 = df_2017_raw |&gt;
+  mutate(if_delay = if_else(arr_delay &gt;0,1,0),
+         if_delay = factor(if_delay),
+         carrier_bin = if_else(!(carrier %in% c(&#39;UA&#39;,&#39;EV&#39;,&#39;DL&#39;,&#39;B6&#39;)),&#39;Others&#39;,carrier),
+         month = factor(month,levels = 1:12, labels = month.abb[1:12]))|&gt;
+  filter(!(dest %in% setdiff(unique(df_2017_raw$dest),unique(df_2013_raw$dest)))) |&gt;
+  select(-`...1`,-carrier,-tailnum,-arr_delay) </code></pre>
+<pre class="r"><code>skimr::skim(df_2013)</code></pre>
+<table>
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">df_2013</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">72521</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">18</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">character</td>
+<td align="left">3</td>
+</tr>
+<tr class="odd">
+<td align="left">factor</td>
+<td align="left">2</td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">13</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<colgroup>
+<col width="19%" />
+<col width="13%" />
+<col width="19%" />
+<col width="5%" />
+<col width="5%" />
+<col width="8%" />
+<col width="12%" />
+<col width="15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">empty</th>
+<th align="right">n_unique</th>
+<th align="right">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">origin</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">dest</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">94</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">carrier_bin</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">6</td>
+<td align="right">0</td>
+<td align="right">5</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<colgroup>
+<col width="14%" />
+<col width="10%" />
+<col width="14%" />
+<col width="8%" />
+<col width="9%" />
+<col width="44%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">month</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">12</td>
+<td align="left">Mar: 10362, Apr: 8474, Nov: 8179, Feb: 6908</td>
+</tr>
+<tr class="even">
+<td align="left">if_delay</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">0: 42052, 1: 30469</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table style="width:100%;">
+<colgroup>
+<col width="14%" />
+<col width="10%" />
+<col width="14%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">year</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2013.00</td>
+<td align="right">0.00</td>
+<td align="right">2013.00</td>
+<td align="right">2013.00</td>
+<td align="right">2013.00</td>
+<td align="right">2013.00</td>
+<td align="right">2013.00</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">day</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">15.36</td>
+<td align="right">8.49</td>
+<td align="right">1.00</td>
+<td align="right">8.00</td>
+<td align="right">15.00</td>
+<td align="right">23.00</td>
+<td align="right">31.00</td>
+<td align="left">▇▆▆▇▅</td>
+</tr>
+<tr class="odd">
+<td align="left">hour</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">13.69</td>
+<td align="right">3.86</td>
+<td align="right">5.00</td>
+<td align="right">11.00</td>
+<td align="right">14.00</td>
+<td align="right">17.00</td>
+<td align="right">23.00</td>
+<td align="left">▃▆▇▇▂</td>
+</tr>
+<tr class="even">
+<td align="left">flight</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2010.04</td>
+<td align="right">1638.63</td>
+<td align="right">1.00</td>
+<td align="right">604.00</td>
+<td align="right">1547.00</td>
+<td align="right">3538.00</td>
+<td align="right">6181.00</td>
+<td align="left">▇▅▂▃▁</td>
+</tr>
+<tr class="odd">
+<td align="left">air_time</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">148.66</td>
+<td align="right">91.91</td>
+<td align="right">21.00</td>
+<td align="right">83.00</td>
+<td align="right">128.00</td>
+<td align="right">184.00</td>
+<td align="right">695.00</td>
+<td align="left">▇▂▂▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">distance</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1020.63</td>
+<td align="right">717.83</td>
+<td align="right">80.00</td>
+<td align="right">502.00</td>
+<td align="right">828.00</td>
+<td align="right">1372.00</td>
+<td align="right">4983.00</td>
+<td align="left">▇▃▂▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">minute</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">26.65</td>
+<td align="right">19.36</td>
+<td align="right">0.00</td>
+<td align="right">10.00</td>
+<td align="right">29.00</td>
+<td align="right">45.00</td>
+<td align="right">59.00</td>
+<td align="left">▇▃▇▃▅</td>
+</tr>
+<tr class="even">
+<td align="left">wind_dir</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">253.85</td>
+<td align="right">81.77</td>
+<td align="right">10.00</td>
+<td align="right">220.00</td>
+<td align="right">280.00</td>
+<td align="right">310.00</td>
+<td align="right">360.00</td>
+<td align="left">▂▁▂▇▇</td>
+</tr>
+<tr class="odd">
+<td align="left">wind_speed</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">16.52</td>
+<td align="right">4.89</td>
+<td align="right">4.60</td>
+<td align="right">12.66</td>
+<td align="right">16.11</td>
+<td align="right">19.56</td>
+<td align="right">39.13</td>
+<td align="left">▂▇▃▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">wind_gust</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">24.91</td>
+<td align="right">5.77</td>
+<td align="right">16.11</td>
+<td align="right">20.71</td>
+<td align="right">24.17</td>
+<td align="right">27.62</td>
+<td align="right">66.75</td>
+<td align="left">▇▅▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">precip</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.00</td>
+<td align="right">0.01</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.53</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">pressure</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1015.56</td>
+<td align="right">7.22</td>
+<td align="right">983.80</td>
+<td align="right">1010.80</td>
+<td align="right">1015.40</td>
+<td align="right">1020.40</td>
+<td align="right">1040.40</td>
+<td align="left">▁▂▇▅▁</td>
+</tr>
+<tr class="odd">
+<td align="left">visib</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">9.80</td>
+<td align="right">1.09</td>
+<td align="right">0.12</td>
+<td align="right">10.00</td>
+<td align="right">10.00</td>
+<td align="right">10.00</td>
+<td align="right">10.00</td>
+<td align="left">▁▁▁▁▇</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>skimr::skim(df_2017)</code></pre>
+<table>
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">df_2017</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">4717</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">18</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">character</td>
+<td align="left">3</td>
+</tr>
+<tr class="odd">
+<td align="left">factor</td>
+<td align="left">2</td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">13</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<colgroup>
+<col width="19%" />
+<col width="13%" />
+<col width="19%" />
+<col width="5%" />
+<col width="5%" />
+<col width="8%" />
+<col width="12%" />
+<col width="15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">empty</th>
+<th align="right">n_unique</th>
+<th align="right">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">origin</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">dest</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">0</td>
+<td align="right">94</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">carrier_bin</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">6</td>
+<td align="right">0</td>
+<td align="right">5</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<colgroup>
+<col width="14%" />
+<col width="10%" />
+<col width="14%" />
+<col width="8%" />
+<col width="9%" />
+<col width="42%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">month</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">11</td>
+<td align="left">Jun: 1949, Mar: 985, May: 629, Feb: 402</td>
+</tr>
+<tr class="even">
+<td align="left">if_delay</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">0: 3100, 1: 1617</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<colgroup>
+<col width="14%" />
+<col width="10%" />
+<col width="14%" />
+<col width="8%" />
+<col width="8%" />
+<col width="7%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">year</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2017.00</td>
+<td align="right">0.00</td>
+<td align="right">2017.0</td>
+<td align="right">2017.00</td>
+<td align="right">2017.00</td>
+<td align="right">2017.00</td>
+<td align="right">2017.00</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">day</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">20.64</td>
+<td align="right">7.66</td>
+<td align="right">1.0</td>
+<td align="right">14.00</td>
+<td align="right">21.00</td>
+<td align="right">28.00</td>
+<td align="right">30.00</td>
+<td align="left">▁▂▂▆▇</td>
+</tr>
+<tr class="odd">
+<td align="left">hour</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">11.86</td>
+<td align="right">4.65</td>
+<td align="right">5.0</td>
+<td align="right">8.00</td>
+<td align="right">11.00</td>
+<td align="right">16.00</td>
+<td align="right">23.00</td>
+<td align="left">▇▆▃▅▁</td>
+</tr>
+<tr class="even">
+<td align="left">flight</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1691.21</td>
+<td align="right">1437.76</td>
+<td align="right">1.0</td>
+<td align="right">527.00</td>
+<td align="right">1346.00</td>
+<td align="right">2230.00</td>
+<td align="right">6834.00</td>
+<td align="left">▇▅▁▂▁</td>
+</tr>
+<tr class="odd">
+<td align="left">air_time</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">160.72</td>
+<td align="right">95.90</td>
+<td align="right">26.0</td>
+<td align="right">97.00</td>
+<td align="right">138.00</td>
+<td align="right">200.00</td>
+<td align="right">668.00</td>
+<td align="left">▇▂▂▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">distance</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1132.70</td>
+<td align="right">750.90</td>
+<td align="right">94.0</td>
+<td align="right">618.00</td>
+<td align="right">963.00</td>
+<td align="right">1521.00</td>
+<td align="right">4983.00</td>
+<td align="left">▇▂▂▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">minute</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">25.79</td>
+<td align="right">19.46</td>
+<td align="right">0.0</td>
+<td align="right">5.00</td>
+<td align="right">29.00</td>
+<td align="right">40.00</td>
+<td align="right">59.00</td>
+<td align="left">▇▃▆▃▅</td>
+</tr>
+<tr class="even">
+<td align="left">wind_dir</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">217.03</td>
+<td align="right">101.32</td>
+<td align="right">0.0</td>
+<td align="right">140.00</td>
+<td align="right">250.00</td>
+<td align="right">300.00</td>
+<td align="right">360.00</td>
+<td align="left">▅▂▂▇▇</td>
+</tr>
+<tr class="odd">
+<td align="left">wind_speed</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">9.66</td>
+<td align="right">4.63</td>
+<td align="right">0.0</td>
+<td align="right">5.75</td>
+<td align="right">9.21</td>
+<td align="right">11.51</td>
+<td align="right">31.07</td>
+<td align="left">▅▇▃▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">wind_gust</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">11.11</td>
+<td align="right">5.33</td>
+<td align="right">0.0</td>
+<td align="right">6.62</td>
+<td align="right">10.59</td>
+<td align="right">13.24</td>
+<td align="right">35.76</td>
+<td align="left">▅▇▃▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">precip</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.01</td>
+<td align="right">0.02</td>
+<td align="right">0.0</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.19</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">pressure</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1015.48</td>
+<td align="right">8.28</td>
+<td align="right">915.9</td>
+<td align="right">1013.40</td>
+<td align="right">1015.60</td>
+<td align="right">1017.50</td>
+<td align="right">1037.70</td>
+<td align="left">▁▁▁▂▇</td>
+</tr>
+<tr class="odd">
+<td align="left">visib</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">9.56</td>
+<td align="right">1.45</td>
+<td align="right">1.0</td>
+<td align="right">10.00</td>
+<td align="right">10.00</td>
+<td align="right">10.00</td>
+<td align="right">10.00</td>
+<td align="left">▁▁▁▁▇</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># Split data into train and test
+set.seed(123)
+
+train = df_2013
+test = df_2017
+train$if_delay = as.factor(train$if_delay)
+test$if_delay = as.factor(test$if_delay)
+
+levels(train$if_delay)</code></pre>
+<pre><code>## [1] &quot;0&quot; &quot;1&quot;</code></pre>
+<pre class="r"><code># Rename factor levels
+levels(train$if_delay) = c(&quot;Delay0&quot;, &quot;Delay1&quot;)
+levels(test$if_delay) = c(&quot;Delay0&quot;, &quot;Delay1&quot;)
+
+# Train a random forest model with hyperparameter tuning
+tune_grid = expand.grid(mtry = seq(2, 18, by = 1))
+
+control = trainControl(method=&quot;cv&quot;, number = 5, classProbs = TRUE, summaryFunction = twoClassSummary) # 5-fold cross-validation
+rf_model_tuned = train(if_delay ~ ., data = train, method = &quot;rf&quot;, 
+                        tuneGrid = tune_grid, trControl = control, ntree = 100, metric = &quot;ROC&quot;)
+
+print(rf_model_tuned)</code></pre>
+<pre><code>## Random Forest 
+## 
+## 72521 samples
+##    17 predictor
+##     2 classes: &#39;Delay0&#39;, &#39;Delay1&#39; 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## Summary of sample sizes: 58017, 58017, 58016, 58017, 58017 
+## Resampling results across tuning parameters:
+## 
+##   mtry  ROC        Sens       Spec      
+##    2    0.6632883  0.9962903  0.02080782
+##    3    0.6878800  0.9720109  0.11565879
+##    4    0.7060107  0.9554122  0.18192229
+##    5    0.7215987  0.9328450  0.26187269
+##    6    0.7337889  0.9184818  0.31536974
+##    7    0.7403773  0.9090886  0.34759950
+##    8    0.7484418  0.8960334  0.38816510
+##    9    0.7558145  0.8891847  0.41973798
+##   10    0.7596153  0.8797201  0.44592887
+##   11    0.7618687  0.8675211  0.47198801
+##   12    0.7648188  0.8647863  0.48324522
+##   13    0.7649154  0.8570578  0.49824427
+##   14    0.7657634  0.8514934  0.50822166
+##   15    0.7667856  0.8441928  0.52069324
+##   16    0.7668853  0.8406733  0.52568215
+##   17    0.7668446  0.8383668  0.52991584
+##   18    0.7665051  0.8351326  0.53526562
+## 
+## ROC was used to select the optimal model using the largest value.
+## The final value used for the model was mtry = 16.</code></pre>
+<pre class="r"><code>predictions = predict(rf_model_tuned, newdata = test, type = &quot;raw&quot;)
+probabilities = predict(rf_model_tuned, newdata = test, type = &quot;prob&quot;)
+
+test$predicted_class = predictions
+test$prob_0 = probabilities[, 1]
+test$prob_1 = probabilities[, 2]
+
+levels(test$predicted_class) = levels(test$if_delay)
+confusion_matrix = confusionMatrix(test$predicted_class, test$if_delay)
+print(confusion_matrix)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Delay0 Delay1
+##     Delay0   2615   1101
+##     Delay1    485    516
+##                                           
+##                Accuracy : 0.6638          
+##                  95% CI : (0.6501, 0.6773)
+##     No Information Rate : 0.6572          
+##     P-Value [Acc &gt; NIR] : 0.1748          
+##                                           
+##                   Kappa : 0.179           
+##                                           
+##  Mcnemar&#39;s Test P-Value : &lt;2e-16          
+##                                           
+##             Sensitivity : 0.8435          
+##             Specificity : 0.3191          
+##          Pos Pred Value : 0.7037          
+##          Neg Pred Value : 0.5155          
+##              Prevalence : 0.6572          
+##          Detection Rate : 0.5544          
+##    Detection Prevalence : 0.7878          
+##       Balanced Accuracy : 0.5813          
+##                                           
+##        &#39;Positive&#39; Class : Delay0          
+## </code></pre>
+<pre class="r"><code>cm = confusion_matrix$table
+cm_melted = as.data.frame(as.table(cm))
+colnames(cm_melted) = c(&quot;Actual&quot;, &quot;Predicted&quot;, &quot;Frequency&quot;)
+ggplot(cm_melted, aes(x = Actual, y = Predicted, fill = Frequency)) +
+  geom_tile(color = &quot;white&quot;) +
+  geom_text(aes(label = Frequency), vjust = 1) +
+  scale_fill_gradient(low = &quot;white&quot;, high = &quot;blue&quot;) +
+  theme_minimal() +
+  labs(x = &#39;Predicted&#39;, y = &#39;Actual&#39;, fill = &#39;Frequency&#39;)</code></pre>
+<p><img src="P8105_Final_Project_RF_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>accuracy = confusion_matrix$overall[&#39;Accuracy&#39;]
+precision = posPredValue(test$predicted_class, test$if_delay)
+recall = sensitivity(test$predicted_class, test$if_delay)
+f1_score = (2 * precision * recall) / (precision + recall)
+roc_curve_results = roc(test$if_delay, test$prob_1)</code></pre>
+<pre><code>## Setting levels: control = Delay0, case = Delay1</code></pre>
+<pre><code>## Setting direction: controls &lt; cases</code></pre>
+<pre class="r"><code>auc_results = auc(roc_curve_results)
+plot(roc_curve_results, main = paste(&quot;ROC Curve (AUC =&quot;, round(auc_results, 2), &quot;)&quot;))</code></pre>
+<p><img src="P8105_Final_Project_RF_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<pre class="r"><code>print(paste(&quot;Accuracy:&quot;, accuracy))</code></pre>
+<pre><code>## [1] &quot;Accuracy: 0.66376934492262&quot;</code></pre>
+<pre class="r"><code>print(paste(&quot;Precision:&quot;, precision))</code></pre>
+<pre><code>## [1] &quot;Precision: 0.703713670613563&quot;</code></pre>
+<pre class="r"><code>print(paste(&quot;Recall:&quot;, recall))</code></pre>
+<pre><code>## [1] &quot;Recall: 0.843548387096774&quot;</code></pre>
+<pre class="r"><code>print(paste(&quot;F1 Score:&quot;, f1_score))</code></pre>
+<pre><code>## [1] &quot;F1 Score: 0.76731220657277&quot;</code></pre>
+<pre class="r"><code>print(paste(&quot;AUC:&quot;, auc_results))</code></pre>
+<pre><code>## [1] &quot;AUC: 0.630070022143755&quot;</code></pre>
+<pre class="r"><code># Filtering out features below the threshold
+threshold = 500 
+importance = as.data.frame(importance(rf_model_tuned$finalModel))
+importance$Feature = row.names(importance)
+filtered_importance = importance[importance$MeanDecreaseGini &gt; threshold, ]
+
+# Generating graph with filtered data
+ggplot(filtered_importance, aes(x = reorder(Feature, MeanDecreaseGini), y = MeanDecreaseGini)) +
+  geom_bar(stat = &quot;identity&quot;) +
+  coord_flip() +
+  xlab(&quot;Feature&quot;) +
+  ylab(&quot;Importance&quot;) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle(&quot;Feature Importance in Random Forest Model&quot;)</code></pre>
+<p><img src="P8105_Final_Project_RF_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
