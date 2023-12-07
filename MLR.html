@@ -309,7 +309,7 @@ M = cor(df_2013_mlr |&gt; select_if(is.numeric))
 corrplot(M, order = &#39;AOE&#39;, type = &#39;upper&#39;, tl.pos = &#39;n&#39;, method = &quot;number&quot;)
 corrplot(M, add = TRUE, type = &#39;lower&#39;, method = &#39;ellipse&#39;, order = &#39;AOE&#39;,
          diag = FALSE, tl.pos = &#39;l&#39;, cl.pos = &#39;n&#39;,tl.col=&#39;black&#39;)</code></pre>
-<p><img src="MLR_files/figure-html/scale-1.png" width="672" /></p>
+<p><img src="MLR_files/figure-html/scale-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#corrplot(cor(df_2013_mlr |&gt; select_if(is.numeric)),  method = &quot;number&quot;)
 # delete distance and wind_speed for less unqiue value
 
@@ -327,11 +327,13 @@ coeff &lt;- tidy(fit_AIC) %&gt;%
   filter(term != &#39;(Intercept)&#39;) %&gt;% 
   slice(1:20)
 ggplot(coeff, 
-       aes(x = reorder(term,estimate), y = estimate)) + geom_col() + coord_flip()+
+       aes(x = reorder(term,estimate), y = estimate)) + 
+  geom_col(fill = &#39;skyblue&#39;) + coord_flip()+
+  geom_text(aes(label = round(estimate,2)))+
   xlab(&#39;Predictors&#39;)+
   ylab(&#39;Estimate&#39;)+
   theme(legend.position = &quot;none&quot;) + theme_minimal()</code></pre>
-<img src="MLR_files/figure-html/estimate%20plot-1.png" width="672" />
+<img src="MLR_files/figure-html/estimate%20plot-1.png" width="672" style="display: block; margin: auto;" />
 <table style="text-align:center">
 <caption>
 <strong>Regression Results</strong>

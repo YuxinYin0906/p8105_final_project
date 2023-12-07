@@ -6,15 +6,24 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      fig.align = 'center')
 
-```{r libraries, include = FALSE}
 library(tidyverse)
 library(tidymodels)
 library(MASS)
 library(corrplot)
-```
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+``` 
 
 ```{r load_data, include = FALSE}
 df_2013_raw =  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
@@ -69,7 +78,9 @@ coeff <- tidy(fit_AIC) %>%
   filter(term != '(Intercept)') %>% 
   slice(1:20)
 ggplot(coeff, 
-       aes(x = reorder(term,estimate), y = estimate)) + geom_col() + coord_flip()+
+       aes(x = reorder(term,estimate), y = estimate)) + 
+  geom_col(fill = 'skyblue') + coord_flip()+
+  geom_text(aes(label = round(estimate,2)))+
   xlab('Predictors')+
   ylab('Estimate')+
   theme(legend.position = "none") + theme_minimal()
