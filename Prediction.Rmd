@@ -87,6 +87,7 @@ ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + geom_col() + coor
 
 # Construct a logistic regression
 
+## logistic
 ```{r}
 val_set <- validation_split(df_2013, 
                             strata = if_delay, 
@@ -157,6 +158,8 @@ lr_res %>%
   collect_predictions(parameters = lr_best) %>% 
   roc_auc(if_delay, .pred_0)
 
+
+
 # Fit the model using the optimal hyperparameters
 log_reg_final <- logistic_reg(penalty = 0.000127, mixture = 1) %>%
                  set_engine("glmnet") %>%
@@ -164,8 +167,19 @@ log_reg_final <- logistic_reg(penalty = 0.000127, mixture = 1) %>%
                  fit(if_delay~., data = df_2013)
 coeff <- tidy(log_reg_final) %>% 
   arrange(desc(abs(estimate))) %>% 
-  filter(abs(estimate) > 0.5)
-ggplot(coeff, aes(x = term, y = estimate, fill = term)) + geom_col() + coord_flip()
+  filter(term != '(Intercept)',
+         abs(estimate) > 0.1)
 
+ggplot(coeff, aes(x = reorder(term,estimate), y = estimate, fill = term)) + geom_col() + coord_flip()+
+  theme(legend.position = "none")
 
+pred_class <- predict(log_reg_final,
+                      new_data = df_2017,
+                      type = "prob")
+library(pROC)
+roc(df_2017$if_delay, pred_class$.pred_0)$auc
+roc_auc(df_2017$if_delay, as.numeric(pred_class$.pred_0))
 ```
+
+
+## RF
