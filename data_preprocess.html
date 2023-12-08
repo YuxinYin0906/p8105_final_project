@@ -13,7 +13,7 @@
 
 <title>Data Preprocessing</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
@@ -348,10 +348,10 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="data_preprocess.html">Data Cleaning</a>
+      <a href="Prediction_v2.html">Prediction</a>
     </li>
     <li>
-      <a href="data_preprocess.html">Data Souce</a>
+      <a href="MLR.html">MLR</a>
     </li>
     <li>
       <a href="EDA.html">Exploratory Data Analysis</a>
@@ -422,8 +422,8 @@ values</h2>
 <pre class="r"><code>missing_values = tibble(
   column_names = colnames(weather_2017),
   missing_percentage = colSums(is.na(weather_2017)) / nrow(weather_2017)
-)
-
+) 
+  
 print(missing_values)</code></pre>
 <pre><code>## # A tibble: 15 × 2
 ##    column_names missing_percentage

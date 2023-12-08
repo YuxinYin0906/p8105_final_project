@@ -13,7 +13,6 @@ navbar:
     - text: "Final Report"
       href: report.html
     - text: "Analysis"
-      href: project.html
       menu:
       - text: "Prediction"
         href: Prediction_v2.html
