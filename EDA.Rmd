@@ -1,9 +1,8 @@
 ---
 title: "EDA"
-author: "Si Chen"
-date: "`r Sys.Date()`"
 output: 
   html_document:
+    toc: true
     code_folding: hide
     toc_float: true
 ---
