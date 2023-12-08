@@ -37,11 +37,119 @@ For the purpose of the project, we will be answering the following questions: <b
 In this project, we located several publicly available data sources shown as following: 
 
 * `nycflights13` from R library, which includes flight information and weather conditions in 2013
-*  The datasets concerning with flight and weather in 2017 can be accessed through this [link](https://github.com/jayleetx/nycflights/tree/master).
+*  The datasets concerning with flight and weather in 2017 can be accessed through this [link](https://github.com/jayleetx/nycflights/tree/master). The data in 2017 would be used for prediction purpose. 
 
 Note: all relevant datasets for this study were contained in the folder `data`. 
 
 ## Data Cleaning 
+
+Files and libraries required at this stage:
+
+* `tidyverse`
+* `dplyr`
+* `library ("nycflights13")`
+* `flights_2017.rda`
+* `weather_2017.rda`
+
+The weather condition and flight information would be merged based on the `origin`, `year`, `month`, `day` and `hour`. As we perceived that large portion of values (>0.9) in some columns  were missing in `2017 weather dataset`, we removed these columns on both 2013 and 2017 datasets. Lastly, we remove the records with na values. 
+
+```{r, message=FALSE}
+library(tidyverse)
+library(dplyr)
+library("nycflights13")
+flights_2013 = flights |> 
+  janitor::clean_names()
+weather_2013 = weather |> 
+  janitor::clean_names()
+
+load("data/flights_2017.rda")
+load("data/weather_2017.rda")
+
+flights_2017 = flights |> 
+  janitor::clean_names()
+weather_2017 = weather |> 
+  janitor::clean_names()
+
+
+flights_2013_clean = 
+  flights_2013 |> 
+  drop_na() |> 
+  unique()  |> 
+  select(
+    -dep_time,
+    -arr_time,
+    -dep_delay,
+    -sched_arr_time,
+    -sched_dep_time,
+    -time_hour
+  )
+
+weather_2013_clean = 
+  weather_2013 |> 
+  select(-c("temp", "dewp", "humid")) |> 
+  drop_na() |> 
+  select(-time_hour)
+
+merge_data_2013 = merge(flights_2013_clean, weather_2013_clean, by =c("origin", 
+                                                                      "year", 
+                                                                      "month",
+                                                                      "day",
+                                                                    "hour"))
+
+
+flights_2017_clean = 
+  flights_2017 |> 
+  drop_na() |> 
+  unique()  |> 
+  select(
+    -dep_time,
+    -arr_time,
+    -dep_delay,
+    -sched_arr_time,
+    -sched_dep_time,
+    -time_hour
+  )
+
+weather_2017_clean = 
+  weather_2017 |> 
+  select(-c("temp", "dewp", "humid")) |> 
+  drop_na() |> 
+  select(-time_hour)
+
+merge_data_2017 = merge(flights_2017_clean, weather_2017_clean, by =c("origin", 
+                                                                      "year", 
+                                                                      "month",
+                                                                      "day",
+                                                                    "hour"))
+
+
+merge_data_2013 = merge_data_2013 |> 
+  select(-flight, -tailnum)
+
+merge_data_2017 = merge_data_2017 |>
+  select(-flight, -tailnum)
+
+```
+
+
+The final clean column names and descriptions:
+
+* `origin`: NYC flight origin (LGA, JFK or EWR)
+* `year`:  Year of departure
+* `month`: Month of departure
+* `day`: Date of departure
+* `hour` and `minute`: Time of departure, recorded in 24-hour clock, breaking into hour and minutes
+* `arr_delay`: Arrival delays in minutes
+* `carrier`: Two letter flight carrier abbreviation
+* `dest`: destination
+* `air_time`: Flight duration in minutes
+* `distance`: Distance between origin and destination in miles
+* `wind_dir`: Wind direction in degree
+* `wind_speed`: Wind speed in mph
+* `wind_gust`: Wind gust speed in mph
+* `precip`: Precipitation in inches
+* `pressure`: Sea level pressure in millibars
+* `visib`: Visibility in miles
 
 
 
@@ -173,6 +281,7 @@ top6_dest =
 dd_hist | origin_delay / top6_dest
 
 ```
+
 
 ```{r}
 df_2013 |> 
@@ -422,7 +531,6 @@ Furthermore, we further visualized the changes of number of delays and daytime d
 
 ### Insights from Visualization
 Based on above visualizations, we anticipated weather factors such as pressure,visibility and wind conditions can be beneficial in predicting flight delay task. Additionally, other features such as information about flight carrier and temporarily are believed to helpful in such prediction task as well. Thus, in the subsequent sections, we would further quantity their correlations by leveraging multiple linear regression.
-
 
 
 

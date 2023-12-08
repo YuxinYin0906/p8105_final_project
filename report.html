@@ -436,8 +436,132 @@ delays? <br> - Does our model based on data from 2013 could be
 potentially used to predict flight delays in 2017? <br> - Can our model
 be generalized based on the reults of the previous question. <br></p>
 </div>
-<div id="data" class="section level2">
-<h2>Data</h2>
+<div id="data-source" class="section level2">
+<h2>Data Source</h2>
+<p>In this project, we located several publicly available data sources
+shown as following:</p>
+<ul>
+<li><code>nycflights13</code> from R library, which includes flight
+information and weather conditions in 2013</li>
+<li>The datasets concerning with flight and weather in 2017 can be
+accessed through this <a
+href="https://github.com/jayleetx/nycflights/tree/master">link</a>. The
+data in 2017 would be used for prediction purpose.</li>
+</ul>
+<p>Note: all relevant datasets for this study were contained in the
+folder <code>data</code>.</p>
+</div>
+<div id="data-cleaning" class="section level2">
+<h2>Data Cleaning</h2>
+<p>Files and libraries required at this stage:</p>
+<ul>
+<li><code>tidyverse</code></li>
+<li><code>dplyr</code></li>
+<li><code>library ("nycflights13")</code></li>
+<li><code>flights_2017.rda</code></li>
+<li><code>weather_2017.rda</code></li>
+</ul>
+<p>The weather condition and flight information would be merged based on
+the <code>origin</code>, <code>year</code>, <code>month</code>,
+<code>day</code> and <code>hour</code>. As we perceived that large
+portion of values (&gt;0.9) in some columns were missing in
+<code>2017 weather dataset</code>, we removed these columns on both 2013
+and 2017 datasets. Lastly, we remove the records with na values.</p>
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
+library(&quot;nycflights13&quot;)
+flights_2013 = flights |&gt; 
+  janitor::clean_names()
+weather_2013 = weather |&gt; 
+  janitor::clean_names()
+
+load(&quot;data/flights_2017.rda&quot;)
+load(&quot;data/weather_2017.rda&quot;)
+
+flights_2017 = flights |&gt; 
+  janitor::clean_names()
+weather_2017 = weather |&gt; 
+  janitor::clean_names()
+
+
+flights_2013_clean = 
+  flights_2013 |&gt; 
+  drop_na() |&gt; 
+  unique()  |&gt; 
+  select(
+    -dep_time,
+    -arr_time,
+    -dep_delay,
+    -sched_arr_time,
+    -sched_dep_time,
+    -time_hour
+  )
+
+weather_2013_clean = 
+  weather_2013 |&gt; 
+  select(-c(&quot;temp&quot;, &quot;dewp&quot;, &quot;humid&quot;)) |&gt; 
+  drop_na() |&gt; 
+  select(-time_hour)
+
+merge_data_2013 = merge(flights_2013_clean, weather_2013_clean, by =c(&quot;origin&quot;, 
+                                                                      &quot;year&quot;, 
+                                                                      &quot;month&quot;,
+                                                                      &quot;day&quot;,
+                                                                    &quot;hour&quot;))
+
+
+flights_2017_clean = 
+  flights_2017 |&gt; 
+  drop_na() |&gt; 
+  unique()  |&gt; 
+  select(
+    -dep_time,
+    -arr_time,
+    -dep_delay,
+    -sched_arr_time,
+    -sched_dep_time,
+    -time_hour
+  )
+
+weather_2017_clean = 
+  weather_2017 |&gt; 
+  select(-c(&quot;temp&quot;, &quot;dewp&quot;, &quot;humid&quot;)) |&gt; 
+  drop_na() |&gt; 
+  select(-time_hour)
+
+merge_data_2017 = merge(flights_2017_clean, weather_2017_clean, by =c(&quot;origin&quot;, 
+                                                                      &quot;year&quot;, 
+                                                                      &quot;month&quot;,
+                                                                      &quot;day&quot;,
+                                                                    &quot;hour&quot;))
+
+
+merge_data_2013 = merge_data_2013 |&gt; 
+  select(-flight, -tailnum)
+
+merge_data_2017 = merge_data_2017 |&gt;
+  select(-flight, -tailnum)</code></pre>
+<p>The final clean column names and descriptions:</p>
+<ul>
+<li><code>origin</code>: NYC flight origin (LGA, JFK or EWR)</li>
+<li><code>year</code>: Year of departure</li>
+<li><code>month</code>: Month of departure</li>
+<li><code>day</code>: Date of departure</li>
+<li><code>hour</code> and <code>minute</code>: Time of departure,
+recorded in 24-hour clock, breaking into hour and minutes</li>
+<li><code>arr_delay</code>: Arrival delays in minutes</li>
+<li><code>carrier</code>: Two letter flight carrier abbreviation</li>
+<li><code>dest</code>: destination</li>
+<li><code>air_time</code>: Flight duration in minutes</li>
+<li><code>distance</code>: Distance between origin and destination in
+miles</li>
+<li><code>wind_dir</code>: Wind direction in degree</li>
+<li><code>wind_speed</code>: Wind speed in mph</li>
+<li><code>wind_gust</code>: Wind gust speed in mph</li>
+<li><code>precip</code>: Precipitation in inches</li>
+<li><code>pressure</code>: Sea level pressure in millibars</li>
+<li><code>visib</code>: Visibility in miles</li>
+</ul>
 </div>
 <div id="exploratory-analysis" class="section level2">
 <h2>Exploratory analysis</h2>
@@ -657,7 +781,7 @@ df_corr = df_2013 |&gt;
   select_if( is.numeric)
 corrplot(cor(df_corr), type=&quot;upper&quot;, order=&quot;hclust&quot;,
          col=brewer.pal(n=8, name=&quot;RdYlBu&quot;))</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-2-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-3-1.png" width="90%" /></p>
 <p>The correlation heatmap plot depicted some highly correlated pair of
 features such as <code>wind_speed</code> and <code>precip</code>, and
 <code>air_time</code> and <code>distance</code>. Thus, in the modeling
@@ -772,7 +896,7 @@ month_plot = df_2013 |&gt;
         y = &quot;Total Number of Delays&quot;)
 
 carrier_plot | month_plot</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-3-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-4-1.png" width="90%" /></p>
 <p>The carrier <code>EV</code> was shown to have the highest number of
 delays, followed by carrier <code>B6</code>. The number of delays for
 carrier <code>HA</code> was found to be the lowest across all carriers.
@@ -814,7 +938,7 @@ weekday_plot_delay = df_2013_weekday |&gt;
 
 
 weekday_plot /weekday_plot_delay</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-4-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-5-1.png" width="90%" /></p>
 <p>An increasing trend in the number of delays was perceived from Monday
 to Thursday, followed by a decline on Friday and Saturday. Based on the
 figures, Saturday had the lowest number of delays and average time of
@@ -858,7 +982,7 @@ part_day_plot_delay = df_2013 |&gt;
        y = &quot;Average Arrival Delays (minutes)&quot;)
 
 part_day_plot / part_day_plot_delay</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-5-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-6-1.png" width="90%" /></p>
 <p>Furthermore, we further visualized the changes of number of delays
 and daytime divided into <code>Late Night</code>, <code>Morning</code>,
 <code>Afternoon</code>, <code>Evening</code>. The number of arrival
