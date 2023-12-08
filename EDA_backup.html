@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Si Chen" />
+
+<meta name="date" content="2023-12-07" />
+
+<title>EDA</title>
+
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.6.2/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.10.3/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="site_libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="report.html">Final Report</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="data_preprocess.html">Data Cleaning</a>
+    </li>
+    <li>
+      <a href="data_preprocess.html">Data Souce</a>
+    </li>
+    <li>
+      <a href="EDA.html">Exploratory Data Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="mailto:&lt;you@youremail.com&gt;">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/YuxinYin0906/p8105_final_project">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">EDA</h1>
+<h4 class="author">Si Chen</h4>
+<h4 class="date">2023-12-07</h4>
+
+</div>
+
+
+<pre class="r"><code>library(tidyr)
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(cowplot)
+library(gridExtra)
+library(RColorBrewer)
+library(plotly)
+
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE,
+    fig.width = 8, 
+  fig.height = 6,
+  out.width = &quot;90%&quot;
+)
+
+theme_set(theme_minimal() + theme(legend.position = &quot;bottom&quot;))
+
+options(
+  ggplot2.continuous.colour = &quot;viridis&quot;,
+  ggplot2.continuous.fill = &quot;viridis&quot;
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d</code></pre>
+<div id="load-clean-datasets" class="section level3">
+<h3>Load clean datasets</h3>
+<pre class="r"><code>df_2013 = 
+  read_csv(&quot;data/merge_data_2013.csv&quot;, show_col_types = FALSE)
+
+df_2017 = 
+  read_csv(&quot;data/merge_data_2017.csv&quot;, show_col_types = FALSE)
+
+# Convert month to factor with levels in ascending order and labels as month abbreviations
+df_2013$month &lt;- factor(df_2013$month, levels = 1:12, labels = month.abb[1:12])
+
+df_2013 &lt;- df_2013 %&gt;%
+  mutate(date = paste(month, day, sep = &quot;_&quot;))</code></pre>
+<pre class="r"><code>average_delay_by_date &lt;- df_2013 %&gt;%
+  # group_by(date) %&gt;%
+  group_by(month, date) %&gt;%
+  summarise(
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    avg_precip = mean(precip, na.rm = TRUE),
+    avg_wind_dir = mean(wind_dir, na.rm = TRUE),
+    avg_wind_speed = mean(wind_speed, na.rm = TRUE),
+    avg_wind_gust = mean(wind_gust, na.rm = TRUE),
+    avg_pressure = mean(pressure, na.rm = TRUE),
+    avg_visib = mean(visib, na.rm = TRUE)
+    )</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;month&#39;. You can override using the
+## `.groups` argument.</code></pre>
+</div>
+<div id="data-set-description" class="section level3">
+<h3>Data set description</h3>
+<p>In the dataset for 2013, there are 20 columns and 72734 rows. In the
+dataset for 2017, there are 19 columns and 4785 rows.</p>
+<p>There are 16 different carriers flying out of NYC airports. NYC has 3
+different airports. There are 104 different destination locations to
+which flights fly out of NYC airports.</p>
+<p>TBC…</p>
+</div>
+<div id="weather" class="section level1">
+<h1>Weather</h1>
+<p>Visualize association between weather variables? aggregate by date,
+plot scatter plot, add fitted line (instead of by month)?</p>
+<pre class="r"><code># Aggregate the data by month and calculate averages
+df_2013_avg &lt;- df_2013 %&gt;%
+  group_by(month) %&gt;%
+  summarize(
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    avg_precip = mean(precip, na.rm = TRUE),
+    avg_wind_dir = mean(wind_dir, na.rm = TRUE),
+    avg_wind_speed = mean(wind_speed, na.rm = TRUE),
+    avg_wind_gust = mean(wind_gust, na.rm = TRUE),
+    avg_pressure = mean(pressure, na.rm = TRUE),
+    avg_visib = mean(visib, na.rm = TRUE)
+  )</code></pre>
+<div id="preciptation-2013" class="section level2">
+<h2>Preciptation 2013</h2>
+<pre class="r"><code># Plot precipitation against arrival delay in a scatter plot
+precip_delay = 
+  ggplot(df_2013, aes(x = precip, y = arr_delay)) +
+  geom_point(alpha = 0.5, color = &quot;skyblue&quot;) +
+  labs(title = &quot;Scatter Plot of Precipitation against Arrival Delay&quot;,
+       x = &quot;Precipitation (inches)&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)</code></pre>
+<pre class="r"><code># Average precip against average arr_delay by month
+precip_delay_month = 
+  ggplot(df_2013_avg, aes(x = avg_precip, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Precipitation against Arrival Delay&quot;,
+       x = &quot;Precipitation (inches)&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)</code></pre>
+<pre class="r"><code>precip_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_precip, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3, alpha = .6) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Precipitation against Arrival Delay by date&quot;,
+       x = &quot;Precipitation (inches)&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+precip_delay_date</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/precip_delay_date-1.png" width="90%" /></p>
+<pre class="r"><code># grid.arrange(precip_line_bar, precip_delay, nrow = 2)
+# precip_violin
+# precip_line
+# precip_bar
+summary(df_2013$precip)</code></pre>
+<pre><code>##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## 0.000000 0.000000 0.000000 0.001352 0.000000 0.530000</code></pre>
+<pre class="r"><code>precip_line_bar</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_precip-1.png" width="90%" /></p>
+<pre class="r"><code>precip_delay</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_precip-2.png" width="90%" /></p>
+<pre class="r"><code>precip_delay_month</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_precip-3.png" width="90%" /></p>
+<pre class="r"><code># precip_delay_date</code></pre>
+</div>
+<div id="pressure" class="section level2">
+<h2>Pressure</h2>
+<pre class="r"><code># Plot average pressure by month in line plot
+pressure_line = 
+  ggplot(df_2013, aes(x = month, y = pressure))  +  
+  #geom_bar(aes(x=month, y=pressure),stat=&quot;summary&quot;, fun = &#39;mean&#39;, fill=&quot;skyblue&quot;)+ 
+  geom_point(aes(x=month, y=pressure), stat = &quot;summary&quot;, fun = &quot;mean&quot;, color = &quot;coral&quot;, alpha = .8) + 
+  geom_line(aes(group = 1), stat=&quot;summary&quot;, fun = &#39;mean&#39;, color=&quot;skyblue&quot;, size=1, alpha = .8) + 
+  labs(
+    title= &quot;Average Pressure by Month&quot;, 
+    x=&quot;Month&quot;,
+    y=&quot;Pressure&quot;)
+
+# Plot Pressure against arrival delay in a scatter plot
+pressure_delay = 
+  ggplot(df_2013, aes(x = pressure, y = arr_delay)) +
+  geom_point(alpha = 0.5, color = &quot;skyblue&quot;) +
+  labs(title = &quot;Scatter Plot of Pressure against Arrival Delay&quot;,
+       x = &quot;Pressure&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+# Average pressure against average arr_delay by month
+pressure_delay_month = 
+  ggplot(df_2013_avg, aes(x = avg_pressure, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Pressure against Arrival Delay by Month&quot;,
+       x = &quot;Avg Monthly Pressure&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)</code></pre>
+<pre class="r"><code># Average pressure against average arr_delay by month
+pressure_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_pressure, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Pressure against Arrival Delay by Date&quot;,
+       x = &quot;Avg Pressure by Date&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)
+
+pressure_delay_date</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/pressure_date-1.png" width="90%" /></p>
+<pre class="r"><code>summary(df_2013$pressure)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   983.8  1010.8  1015.4  1015.6  1020.4  1040.4</code></pre>
+<pre class="r"><code>pressure_line</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_pressure-1.png" width="90%" /></p>
+<pre class="r"><code>pressure_delay</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_pressure-2.png" width="90%" /></p>
+<pre class="r"><code>pressure_delay_month</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_pressure-3.png" width="90%" /></p>
+</div>
+<div id="visibility" class="section level2">
+<h2>Visibility</h2>
+<pre class="r"><code># Plot average Visibility by month in line plot
+visib_line = 
+  ggplot(df_2013, aes(x = month, y = visib))  +  
+  # geom_bar(aes(x=month, y=visib),stat=&quot;summary&quot;, fun = &#39;mean&#39;, fill=&quot;skyblue&quot;)+ 
+  geom_point(aes(x=month, y=visib), stat = &quot;summary&quot;, fun = &quot;mean&quot;, color = &quot;coral&quot;) + 
+  geom_line(aes(group = 1), stat=&quot;summary&quot;, fun = &#39;mean&#39;, color=&quot;skyblue&quot;, size=1, alpha = .8) + 
+  labs(
+    title= &quot;Average Visibility by Month&quot;, 
+    x=&quot;Month&quot;,
+    y=&quot;Visibility&quot;)
+
+# Plot Visibility against arrival delay in a scatter plot
+visib_delay = 
+  ggplot(df_2013, aes(x = visib, y = arr_delay)) +
+  geom_point(alpha = 0.5, color = &quot;skyblue&quot;) +
+  labs(title = &quot;Scatter Plot of Visibility against Arrival Delay&quot;,
+       x = &quot;Visibility&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+# Average Visibility against average arr_delay by month
+visib_delay_month = 
+  ggplot(df_2013_avg, aes(x = avg_visib, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Visibility against Arrival Delay by Month&quot;,
+       x = &quot;Avg Monthly Visibility&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)</code></pre>
+<pre class="r"><code># Average Visibility against average arr_delay by date
+visib_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_visib, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Visibility against Arrival Delay by Date&quot;,
+       x = &quot;Avg Visibility by Date&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)
+
+
+visib_delay_date</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/visib_date-1.png" width="90%" /></p>
+<pre class="r"><code>summary(df_2013$visib)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   0.120  10.000  10.000   9.803  10.000  10.000</code></pre>
+<pre class="r"><code>visib_line</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_visib-1.png" width="90%" /></p>
+<pre class="r"><code>visib_delay</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_visib-2.png" width="90%" /></p>
+<pre class="r"><code>visib_delay_month</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_visib-3.png" width="90%" /></p>
+</div>
+<div id="wind-direction" class="section level2">
+<h2>Wind Direction</h2>
+<pre class="r"><code># Plot average wind_dir by month in line plot
+wind_dir_line = 
+  ggplot(df_2013, aes(x = month, y = wind_dir))  +  
+  geom_bar(aes(x=month, y=wind_dir),stat=&quot;summary&quot;, fun = &#39;mean&#39;, fill=&quot;skyblue&quot;, alpha = .8)+ 
+  geom_point(aes(x=month, y=wind_dir), stat = &quot;summary&quot;, fun = &quot;mean&quot;, color = &quot;red&quot;) + 
+  geom_line(aes(group = 1), stat=&quot;summary&quot;, fun = &#39;mean&#39;, color=&quot;coral&quot;, size=1, alpha = .9) + 
+  labs(
+    title= &quot;Average Wind Direction by Month&quot;, 
+    x=&quot;Month&quot;,
+    y=&quot;Wind Direction&quot;)
+
+# Plot Wind Direction against arrival delay in a scatter plot
+wind_dir_delay = 
+  ggplot(df_2013, aes(x = wind_dir, y = arr_delay)) +
+  geom_point(alpha = 0.5, color = &quot;skyblue&quot;) +
+  labs(title = &quot;Scatter Plot of Wind Direction against Arrival Delay&quot;,
+       x = &quot;Wind Direction&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+# Average Wind Direction against average arr_delay by month
+wind_dir_delay_month = 
+  ggplot(df_2013_avg, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Wind Direction against Arrival Delay by Month&quot;,
+       x = &quot;Avg Monthly Wind Direction&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)</code></pre>
+<pre class="r"><code># Average Wind Direction against average arr_delay by date
+wind_dir_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Wind Direction against Arrival Delay by Date&quot;,
+       x = &quot;Avg Daily Wind Direction&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)
+
+wind_dir_delay_date</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/wind_dir_date-1.png" width="90%" /></p>
+<pre class="r"><code>summary(df_2013$wind_dir)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    10.0   220.0   280.0   253.9   310.0   360.0</code></pre>
+<pre class="r"><code>wind_dir_line</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_dir-1.png" width="90%" /></p>
+<pre class="r"><code>wind_dir_delay</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_dir-2.png" width="90%" /></p>
+<pre class="r"><code>wind_dir_delay_month</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_dir-3.png" width="90%" /></p>
+</div>
+<div id="wind-speed" class="section level2">
+<h2>Wind Speed</h2>
+<pre class="r"><code># Plot average wind_speed by month in line plot
+wind_speed_line = 
+  ggplot(df_2013, aes(x = month, y = wind_speed))  +  
+  geom_bar(aes(x=month, y=wind_speed),stat=&quot;summary&quot;, fun = &#39;mean&#39;, fill=&quot;skyblue&quot;, alpha = .8)+ 
+  geom_point(aes(x=month, y=wind_speed), stat = &quot;summary&quot;, fun = &quot;mean&quot;, color = &quot;red&quot;) + 
+  geom_line(aes(group = 1), stat=&quot;summary&quot;, fun = &#39;mean&#39;, color=&quot;coral&quot;, size=1, alpha = .8) + 
+  labs(
+    title= &quot;Average Wind Speed by Month&quot;, 
+    x=&quot;Month&quot;,
+    y=&quot;Wind Speed&quot;)
+
+# Plot wind_speed against arrival delay in a scatter plot
+wind_speed_delay = 
+  ggplot(df_2013, aes(x = wind_speed, y = arr_delay)) +
+  geom_point(alpha = 0.5, color = &quot;skyblue&quot;) +
+  labs(title = &quot;Scatter Plot of Wind Speed against Arrival Delay&quot;,
+       x = &quot;Wind Speed&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+# Average wind_speed against average arr_delay by month
+wind_speed_delay_month = 
+  ggplot(df_2013_avg, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Wind Speed against Arrival Delay by Month&quot;,
+       x = &quot;Avg Monthly Wind Speed&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)</code></pre>
+<pre class="r"><code># Average wind_speed against average arr_delay by date
+wind_speed_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Wind Speed against Arrival Delay by Date&quot;,
+       x = &quot;Avg Daily Wind Speed&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)
+
+wind_speed_delay_date</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/wind_speed_date-1.png" width="90%" /></p>
+<pre class="r"><code>summary(df_2013$wind_speed)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   4.603  12.659  16.111  16.523  19.563  39.127</code></pre>
+<pre class="r"><code>wind_speed_line</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_speed-1.png" width="90%" /></p>
+<pre class="r"><code>wind_speed_delay</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_speed-2.png" width="90%" /></p>
+<pre class="r"><code>wind_speed_delay_month</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_speed-3.png" width="90%" /></p>
+</div>
+<div id="wind-gust" class="section level2">
+<h2>Wind Gust</h2>
+<pre class="r"><code># Plot average wind_gust by month in line plot
+wind_gust_line = 
+  ggplot(df_2013, aes(x = month, y = wind_gust))  +  
+  geom_bar(aes(x=month, y=wind_gust),stat=&quot;summary&quot;, fun = &#39;mean&#39;, fill=&quot;skyblue&quot;, alpha = .8)+ 
+  geom_point(aes(x=month, y=wind_gust), stat = &quot;summary&quot;, fun = &quot;mean&quot;, color = &quot;red&quot;) + 
+  geom_line(aes(group = 1), stat=&quot;summary&quot;, fun = &#39;mean&#39;, color=&quot;coral&quot;, size=1, alpha = .8) + 
+  labs(
+    title= &quot;Average Wind Gust by Month&quot;, 
+    x=&quot;Month&quot;,
+    y=&quot;Wind Gust&quot;)
+
+# Plot wind_gust against arrival delay in a scatter plot
+wind_gust_delay = 
+  ggplot(df_2013, aes(x = wind_gust, y = arr_delay)) +
+  geom_point(alpha = 0.5, color = &quot;skyblue&quot;) +
+  labs(title = &quot;Scatter Plot of Wind Gust against Arrival Delay&quot;,
+       x = &quot;Wind Gust&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+# Average wind_gust against average arr_delay by month
+wind_gust_delay_month = 
+  ggplot(df_2013_avg, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Wind Gust against Arrival Delay by Month&quot;,
+       x = &quot;Avg Monthly Wind Gust&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)</code></pre>
+<pre class="r"><code># Average wind_gust against average arr_delay by date
+wind_gust_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Scatter Plot of Average Wind Gust against Arrival Delay by Date&quot;,
+       x = &quot;Avg Daily Wind Gust&quot;,
+       y = &quot;Avg Arrival Delay (minutes)&quot;)
+
+wind_gust_delay_date</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/wind_gust_date-1.png" width="90%" /></p>
+<pre class="r"><code>summary(df_2013$wind_gust)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   16.11   20.71   24.17   24.91   27.62   66.75</code></pre>
+<pre class="r"><code>wind_gust_line</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_gust-1.png" width="90%" /></p>
+<pre class="r"><code>wind_gust_delay</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_gust-2.png" width="90%" /></p>
+<pre class="r"><code>wind_gust_delay_month</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/show_wind_gust-3.png" width="90%" /></p>
+</div>
+<div id="weather-variables" class="section level2">
+<h2>Weather Variables</h2>
+<pre class="r"><code>combined_weather_1 &lt;- 
+  grid.arrange(
+    pressure_delay_date, 
+    wind_dir_delay_date, 
+    wind_gust_delay_date, 
+    wind_speed_delay_date, 
+    ncol = 2,
+    layout_matrix = matrix(c(1, 2, 3, 4), ncol = 2, byrow = TRUE),
+    heights = c(1, 1), widths = c(1, 1),
+    top = &quot;Weather Variables&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;
+## `geom_smooth()` using formula = &#39;y ~ x&#39;
+## `geom_smooth()` using formula = &#39;y ~ x&#39;
+## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/plot_weather-1.png" width="90%" /></p>
+<pre class="r"><code>combined_weather_1</code></pre>
+<pre><code>## TableGrob (3 x 2) &quot;arrange&quot;: 5 grobs
+##   z     cells    name                 grob
+## 1 1 (2-2,1-1) arrange       gtable[layout]
+## 2 2 (2-2,2-2) arrange       gtable[layout]
+## 3 3 (3-3,1-1) arrange       gtable[layout]
+## 4 4 (3-3,2-2) arrange       gtable[layout]
+## 5 5 (1-1,1-2) arrange text[GRID.text.2276]</code></pre>
+</div>
+</div>
+<div id="flights" class="section level1">
+<h1>Flights</h1>
+<div id="arrival-delay-summary" class="section level2">
+<h2>Arrival Delay Summary</h2>
+<pre class="r"><code>summary(df_2013$arr_delay)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -74.000 -16.000  -4.000   7.287  14.000 783.000</code></pre>
+<pre class="r"><code>dd_hist = 
+  ggplot(data = df_2013, aes(x = arr_delay)) +
+  geom_histogram(fill = &#39;skyblue&#39;, color = &#39;coral&#39;)+
+  labs(title = &quot;Histogram of Arrival Delay&quot;,
+       x = &quot;Arrival Delay (minutes)&quot;,
+       y = &quot;Frequency&quot;)
+
+dd_hist</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="EDA_backup_files/figure-html/delay_summary-1.png" width="90%" /></p>
+</div>
+<div id="distance---arrival-delay---destination" class="section level2">
+<h2>Distance - Arrival Delay - Destination</h2>
+<p>The relationship between the distance and the average delay for each
+location.</p>
+<pre class="r"><code>df_2013_dest &lt;- 
+  df_2013 %&gt;% 
+  group_by(dest) %&gt;%
+  summarize(
+    count = n(),
+    dist = mean(distance, na.rm = TRUE),
+    delay = mean(arr_delay, na.rm = TRUE)
+  )</code></pre>
+<pre class="r"><code>df_2013_dest</code></pre>
+<pre><code>## # A tibble: 104 × 4
+##    dest  count  dist  delay
+##    &lt;chr&gt; &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt;
+##  1 ABQ      22 1826    8.32
+##  2 ACK      29  199   -1.69
+##  3 ALB     103  143   13.6 
+##  4 ANC       3 3370  -22.7 
+##  5 ATL    4043  757.   8.74
+##  6 AUS     510 1513.   3.67
+##  7 AVL      54  584.  11.2 
+##  8 BDL     100  116    7.75
+##  9 BGR      80  378    4.86
+## 10 BHM      60  866   19.7 
+## # ℹ 94 more rows</code></pre>
+<pre class="r"><code>ggplot(df_2013_dest, aes(dist, delay)) + 
+  geom_point(aes(size = count, color = dist),alpha = 0.5) + 
+  geom_smooth(color = &#39;skyblue&#39;) + 
+  geom_jitter() +
+  scale_fill_brewer(palette = &quot;Set3&quot;) +
+  labs(title = &quot;Distance against Arrival Delay&quot;,
+       x = &quot;Distance&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/unnamed-chunk-1-1.png" width="90%" /></p>
+<p>Flights tend to have more delays in short-medium distances. Long
+distance flights do not have as much delay.</p>
+</div>
+<div id="arrival-delay-by-origins" class="section level2">
+<h2>Arrival delay by origins</h2>
+<pre class="r"><code>df_2013 %&gt;%
+  group_by(origin) %&gt;%
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %&gt;% 
+  arrange(desc(mean_ad))</code></pre>
+<pre><code>## # A tibble: 3 × 5
+##   origin mean_ad sd_ad IQR_ad     n
+##   &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;
+## 1 EWR       9.27  43.8     32 28344
+## 2 JFK       6.39  40.8     29 19212
+## 3 LGA       5.74  42.1     29 25178</code></pre>
+<pre class="r"><code># Plot violin plot of arr_delay against origin, coloring by origin
+# reversing the order from high to low
+delay_origin_box = 
+  ggplot(df_2013, aes(x = reorder(origin, -arr_delay), y = arr_delay, fill = origin)) +
+  geom_boxplot(trim = FALSE, scale = &quot;width&quot;, alpha = 0.7) +
+  labs(title = &quot;Violin Plot of Arrival Delay by Origin&quot;,
+       x = &quot;Origin&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+delay_origin_box</code></pre>
+<p><img src="EDA_backup_files/figure-html/origin_delay-1.png" width="90%" /></p>
+</div>
+<div id="arrival-delay-by-destination" class="section level2">
+<h2>Arrival delay by Destination</h2>
+<pre class="r"><code>df_2013 %&gt;%
+  group_by(dest) %&gt;%
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %&gt;% 
+  arrange(desc(mean_ad))</code></pre>
+<pre><code>## # A tibble: 104 × 5
+##    dest  mean_ad sd_ad IQR_ad     n
+##    &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;
+##  1 TUL      47.5  74.9   84      46
+##  2 OKC      33.1  53.3   67.8    60
+##  3 CAE      27.6  46.8   32.5    27
+##  4 TYS      27.5  52.6   70     102
+##  5 DSM      24.7  57.8   55.8    86
+##  6 GRR      21.7  54.3   41.8   194
+##  7 CRW      21.5  46.9   52      49
+##  8 GSP      21.4  49.5   55     183
+##  9 SBN      20.5  41.7   29.5     2
+## 10 JAC      20.3  20.5   18       3
+## # ℹ 94 more rows</code></pre>
+<pre class="r"><code># Create a summary table with average arrival delay for each destination
+avg_arr_delay &lt;- df_2013 %&gt;%
+  group_by(dest) %&gt;%
+  summarise(avg_arr_delay = mean(arr_delay, na.rm = TRUE))</code></pre>
+<pre class="r"><code># Create an interactive map using plotly
+fig &lt;- plot_ly(
+  data = avg_arr_delay,
+  type = &#39;scattergeo&#39;,
+  locationmode = &#39;USA-states&#39;,
+  locations = ~dest,
+  z = ~avg_arr_delay,
+  text = ~paste(&#39;Destination: &#39;, dest, &#39;&lt;br&gt;Avg Arrival Delay: &#39;, round(avg_arr_delay, 2)),
+  color = ~avg_arr_delay,
+  colorscale = &#39;Viridis&#39;,
+  marker = list(line = list(width = 0.5, color = &#39;white&#39;))
+) %&gt;%
+  layout(
+    geo = list(
+      scope = &#39;usa&#39;,
+      projection = list(type = &#39;albers usa&#39;),
+      showland = TRUE,
+      landcolor = &#39;rgb(217, 217, 217)&#39;,
+      subunitwidth = 1,
+      countrywidth = 1,
+      subunitcolor = &#39;rgb(255,255,255)&#39;,
+      countrycolor = &#39;rgb(255,255,255)&#39;
+    ),
+    title = &#39;Average Arrival Delay by Destination&#39;,
+    xaxis = list(title = &#39;Destination&#39;),
+    yaxis = list(title = &#39;Average Arrival Delay&#39;)
+  )
+
+# Show the interactive map
+fig</code></pre>
+<pre><code>## No scattergeo mode specifed:
+##   Setting the mode to markers
+##   Read more about this attribute -&gt; https://plotly.com/r/reference/#scatter-mode</code></pre>
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-d497af904e5d2fc18096" style="width:90%;height:576px;"></div>
+<script type="application/json" data-for="htmlwidget-d497af904e5d2fc18096">{"x":{"visdat":{"b1067565569":["function () ","plotlyVisDat"]},"cur_data":"b1067565569","attrs":{"b1067565569":{"locationmode":"USA-states","locations":{},"z":{},"text":{},"colorscale":"Viridis","marker":{"line":{"width":0.5,"color":"white"}},"color":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scattergeo"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"geo":{"scope":"usa","projection":{"type":"albers usa"},"showland":true,"landcolor":"rgb(217, 217, 217)","subunitwidth":1,"countrywidth":1,"subunitcolor":"rgb(255,255,255)","countrycolor":"rgb(255,255,255)"},"title":"Average Arrival Delay by Destination","xaxis":{"title":"Destination"},"yaxis":{"title":"Average Arrival Delay"},"scene":{"zaxis":{"title":"avg_arr_delay"}},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"locationmode":"USA-states","locations":["ABQ","ACK","ALB","ANC","ATL","AUS","AVL","BDL","BGR","BHM","BNA","BOS","BQN","BTV","BUF","BUR","BWI","BZN","CAE","CAK","CHO","CHS","CLE","CLT","CMH","CRW","CVG","DAY","DCA","DEN","DFW","DSM","DTW","EGE","EYW","FLL","GRR","GSO","GSP","HDN","HNL","HOU","IAD","IAH","ILM","IND","JAC","JAX","LAS","LAX","LEX","LGB","MCI","MCO","MDW","MEM","MHT","MIA","MKE","MSN","MSP","MSY","MTJ","MVY","MYR","OAK","OKC","OMA","ORD","ORF","PBI","PDX","PHL","PHX","PIT","PSE","PSP","PVD","PWM","RDU","RIC","ROC","RSW","SAN","SAT","SAV","SBN","SDF","SEA","SFO","SJC","SJU","SLC","SMF","SNA","SRQ","STL","STT","SYR","TPA","TUL","TVC","TYS","XNA"],"z":[8.3181818181818183,-1.6896551724137931,13.592233009708737,-22.666666666666668,8.7427652733118979,3.6745098039215685,11.222222222222221,7.75,4.8624999999999998,19.699999999999999,12.349799732977303,1.8380681818181819,13.11504424778761,9.4797047970479706,10.466346153846153,5.943661971830986,13.534626038781163,14,27.555555555555557,16.004999999999999,9.6666666666666661,11.444253859348199,7.610619469026549,9.4614099565653191,10.259493670886076,21.469387755102041,16.780278670953912,10.394594594594595,9.1983901515151523,8.9087799315849487,-0.038171536286522152,24.720930232558139,4.3311475409836069,-5.3103448275862073,10.4,9.4618627826753539,21.690721649484537,12.984848484848484,21.360655737704917,-6.5,-0.8689320388349514,6.3493449781659388,15.984455958549223,5.9271445358401884,8.75,11.376651982378855,20.333333333333332,13.496376811594203,-0.41606498194945851,-0.022327044025157214,-22,1.2876712328767124,13.442348008385745,6.4990247074122234,10.229056203605515,10.336170212765957,15.188118811881187,1.8731371799770731,13.674491392801253,17.608465608465607,8.4867854947756616,6.5897771952817825,-10,2.75,-4.4444444444444446,-1.5689655172413792,33.133333333333333,18.035714285714285,3.5145173947161914,11.874673629242819,8.3888541014402005,3.2643171806167399,13.557324840764331,1.8141831238779174,8.9570446735395191,3.9302325581395348,-19.166666666666668,18.210526315789473,17.612500000000001,11.902480270574971,19.492337164750957,11.200723327305607,2.9393939393939394,4.2330960854092528,0.37313432835820898,19.300925925925927,20.5,19.097777777777779,1.5418439716312056,3.5125391849529781,8.7457627118644066,3.3386545039908779,-0.037422037422037417,15,-7.9090909090909092,5.1428571428571432,10.706165703275531,1.8974358974358974,11.62700964630225,8.4422712933753949,47.521739130434781,-5.0999999999999996,27.509803921568629,12.374449339207048],"text":["Destination:  ABQ <br>Avg Arrival Delay:  8.32","Destination:  ACK <br>Avg Arrival Delay:  -1.69","Destination:  ALB <br>Avg Arrival Delay:  13.59","Destination:  ANC <br>Avg Arrival Delay:  -22.67","Destination:  ATL <br>Avg Arrival Delay:  8.74","Destination:  AUS <br>Avg Arrival Delay:  3.67","Destination:  AVL <br>Avg Arrival Delay:  11.22","Destination:  BDL <br>Avg Arrival Delay:  7.75","Destination:  BGR <br>Avg Arrival Delay:  4.86","Destination:  BHM <br>Avg Arrival Delay:  19.7","Destination:  BNA <br>Avg Arrival Delay:  12.35","Destination:  BOS <br>Avg Arrival Delay:  1.84","Destination:  BQN <br>Avg Arrival Delay:  13.12","Destination:  BTV <br>Avg Arrival Delay:  9.48","Destination:  BUF <br>Avg Arrival Delay:  10.47","Destination:  BUR <br>Avg Arrival Delay:  5.94","Destination:  BWI <br>Avg Arrival Delay:  13.53","Destination:  BZN <br>Avg Arrival Delay:  14","Destination:  CAE <br>Avg Arrival Delay:  27.56","Destination:  CAK <br>Avg Arrival Delay:  16","Destination:  CHO <br>Avg Arrival Delay:  9.67","Destination:  CHS <br>Avg Arrival Delay:  11.44","Destination:  CLE <br>Avg Arrival Delay:  7.61","Destination:  CLT <br>Avg Arrival Delay:  9.46","Destination:  CMH <br>Avg Arrival Delay:  10.26","Destination:  CRW <br>Avg Arrival Delay:  21.47","Destination:  CVG <br>Avg Arrival Delay:  16.78","Destination:  DAY <br>Avg Arrival Delay:  10.39","Destination:  DCA <br>Avg Arrival Delay:  9.2","Destination:  DEN <br>Avg Arrival Delay:  8.91","Destination:  DFW <br>Avg Arrival Delay:  -0.04","Destination:  DSM <br>Avg Arrival Delay:  24.72","Destination:  DTW <br>Avg Arrival Delay:  4.33","Destination:  EGE <br>Avg Arrival Delay:  -5.31","Destination:  EYW <br>Avg Arrival Delay:  10.4","Destination:  FLL <br>Avg Arrival Delay:  9.46","Destination:  GRR <br>Avg Arrival Delay:  21.69","Destination:  GSO <br>Avg Arrival Delay:  12.98","Destination:  GSP <br>Avg Arrival Delay:  21.36","Destination:  HDN <br>Avg Arrival Delay:  -6.5","Destination:  HNL <br>Avg Arrival Delay:  -0.87","Destination:  HOU <br>Avg Arrival Delay:  6.35","Destination:  IAD <br>Avg Arrival Delay:  15.98","Destination:  IAH <br>Avg Arrival Delay:  5.93","Destination:  ILM <br>Avg Arrival Delay:  8.75","Destination:  IND <br>Avg Arrival Delay:  11.38","Destination:  JAC <br>Avg Arrival Delay:  20.33","Destination:  JAX <br>Avg Arrival Delay:  13.5","Destination:  LAS <br>Avg Arrival Delay:  -0.42","Destination:  LAX <br>Avg Arrival Delay:  -0.02","Destination:  LEX <br>Avg Arrival Delay:  -22","Destination:  LGB <br>Avg Arrival Delay:  1.29","Destination:  MCI <br>Avg Arrival Delay:  13.44","Destination:  MCO <br>Avg Arrival Delay:  6.5","Destination:  MDW <br>Avg Arrival Delay:  10.23","Destination:  MEM <br>Avg Arrival Delay:  10.34","Destination:  MHT <br>Avg Arrival Delay:  15.19","Destination:  MIA <br>Avg Arrival Delay:  1.87","Destination:  MKE <br>Avg Arrival Delay:  13.67","Destination:  MSN <br>Avg Arrival Delay:  17.61","Destination:  MSP <br>Avg Arrival Delay:  8.49","Destination:  MSY <br>Avg Arrival Delay:  6.59","Destination:  MTJ <br>Avg Arrival Delay:  -10","Destination:  MVY <br>Avg Arrival Delay:  2.75","Destination:  MYR <br>Avg Arrival Delay:  -4.44","Destination:  OAK <br>Avg Arrival Delay:  -1.57","Destination:  OKC <br>Avg Arrival Delay:  33.13","Destination:  OMA <br>Avg Arrival Delay:  18.04","Destination:  ORD <br>Avg Arrival Delay:  3.51","Destination:  ORF <br>Avg Arrival Delay:  11.87","Destination:  PBI <br>Avg Arrival Delay:  8.39","Destination:  PDX <br>Avg Arrival Delay:  3.26","Destination:  PHL <br>Avg Arrival Delay:  13.56","Destination:  PHX <br>Avg Arrival Delay:  1.81","Destination:  PIT <br>Avg Arrival Delay:  8.96","Destination:  PSE <br>Avg Arrival Delay:  3.93","Destination:  PSP <br>Avg Arrival Delay:  -19.17","Destination:  PVD <br>Avg Arrival Delay:  18.21","Destination:  PWM <br>Avg Arrival Delay:  17.61","Destination:  RDU <br>Avg Arrival Delay:  11.9","Destination:  RIC <br>Avg Arrival Delay:  19.49","Destination:  ROC <br>Avg Arrival Delay:  11.2","Destination:  RSW <br>Avg Arrival Delay:  2.94","Destination:  SAN <br>Avg Arrival Delay:  4.23","Destination:  SAT <br>Avg Arrival Delay:  0.37","Destination:  SAV <br>Avg Arrival Delay:  19.3","Destination:  SBN <br>Avg Arrival Delay:  20.5","Destination:  SDF <br>Avg Arrival Delay:  19.1","Destination:  SEA <br>Avg Arrival Delay:  1.54","Destination:  SFO <br>Avg Arrival Delay:  3.51","Destination:  SJC <br>Avg Arrival Delay:  8.75","Destination:  SJU <br>Avg Arrival Delay:  3.34","Destination:  SLC <br>Avg Arrival Delay:  -0.04","Destination:  SMF <br>Avg Arrival Delay:  15","Destination:  SNA <br>Avg Arrival Delay:  -7.91","Destination:  SRQ <br>Avg Arrival Delay:  5.14","Destination:  STL <br>Avg Arrival Delay:  10.71","Destination:  STT <br>Avg Arrival Delay:  1.9","Destination:  SYR <br>Avg Arrival Delay:  11.63","Destination:  TPA <br>Avg Arrival Delay:  8.44","Destination:  TUL <br>Avg Arrival Delay:  47.52","Destination:  TVC <br>Avg Arrival Delay:  -5.1","Destination:  TYS <br>Avg Arrival Delay:  27.51","Destination:  XNA <br>Avg Arrival Delay:  12.37"],"colorscale":"Viridis","marker":{"colorbar":{"title":"avg_arr_delay","ticklen":2},"cmin":-22.666666666666668,"cmax":47.521739130434781,"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":false,"color":[8.3181818181818183,-1.6896551724137931,13.592233009708737,-22.666666666666668,8.7427652733118979,3.6745098039215685,11.222222222222221,7.75,4.8624999999999998,19.699999999999999,12.349799732977303,1.8380681818181819,13.11504424778761,9.4797047970479706,10.466346153846153,5.943661971830986,13.534626038781163,14,27.555555555555557,16.004999999999999,9.6666666666666661,11.444253859348199,7.610619469026549,9.4614099565653191,10.259493670886076,21.469387755102041,16.780278670953912,10.394594594594595,9.1983901515151523,8.9087799315849487,-0.038171536286522152,24.720930232558139,4.3311475409836069,-5.3103448275862073,10.4,9.4618627826753539,21.690721649484537,12.984848484848484,21.360655737704917,-6.5,-0.8689320388349514,6.3493449781659388,15.984455958549223,5.9271445358401884,8.75,11.376651982378855,20.333333333333332,13.496376811594203,-0.41606498194945851,-0.022327044025157214,-22,1.2876712328767124,13.442348008385745,6.4990247074122234,10.229056203605515,10.336170212765957,15.188118811881187,1.8731371799770731,13.674491392801253,17.608465608465607,8.4867854947756616,6.5897771952817825,-10,2.75,-4.4444444444444446,-1.5689655172413792,33.133333333333333,18.035714285714285,3.5145173947161914,11.874673629242819,8.3888541014402005,3.2643171806167399,13.557324840764331,1.8141831238779174,8.9570446735395191,3.9302325581395348,-19.166666666666668,18.210526315789473,17.612500000000001,11.902480270574971,19.492337164750957,11.200723327305607,2.9393939393939394,4.2330960854092528,0.37313432835820898,19.300925925925927,20.5,19.097777777777779,1.5418439716312056,3.5125391849529781,8.7457627118644066,3.3386545039908779,-0.037422037422037417,15,-7.9090909090909092,5.1428571428571432,10.706165703275531,1.8974358974358974,11.62700964630225,8.4422712933753949,47.521739130434781,-5.0999999999999996,27.509803921568629,12.374449339207048],"line":{"colorbar":{"title":"","ticklen":2},"cmin":-22.666666666666668,"cmax":47.521739130434781,"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":false,"color":"white","width":0.5}},"type":"scattergeo","mode":"markers","frame":null},{"type":"scattergeo","mode":"markers","opacity":0,"hoverinfo":"none","showlegend":false,"marker":{"colorbar":{"title":"avg_arr_delay","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"cmin":-22.666666666666668,"cmax":47.521739130434781,"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"color":[-22.666666666666668,47.521739130434781],"line":{"color":"rgba(255,127,14,1)"}},"lat":[null,null],"lon":[null,null],"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code># Calculate average arrival delay by destination
+avg_arr_delay_by_dest &lt;- df_2013 %&gt;%
+  group_by(dest) %&gt;%
+  summarize(avg_arr_delay_dest = mean(arr_delay, na.rm = TRUE)) %&gt;%
+  arrange(desc(avg_arr_delay_dest)) %&gt;%
+  head(10)
+
+# Select only the top 6 destinations
+top_destinations &lt;- avg_arr_delay_by_dest$dest
+
+# Filter the data for the top 6 destinations
+filtered_data &lt;- df_2013 %&gt;% filter(dest %in% top_destinations)
+
+# Create a boxplot for the top 6 destinations
+top10_dest = 
+  ggplot(filtered_data, aes(x = reorder(dest, -arr_delay), y = arr_delay, fill = dest)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = &quot;Set3&quot;) +
+  labs(title = &quot;Boxplot of Arrival Delay for Top 6 Destinations&quot;,
+       x = &quot;Destination&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+ top10_dest</code></pre>
+<p><img src="EDA_backup_files/figure-html/plot_dest_delay-1.png" width="90%" /></p>
+</div>
+<div id="arrival-delay-by-carriers" class="section level2">
+<h2>Arrival delay by carriers</h2>
+<pre class="r"><code>df_2013 %&gt;%
+  group_by(carrier) %&gt;%
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %&gt;% 
+  arrange(desc(mean_ad))</code></pre>
+<pre><code>## # A tibble: 16 × 5
+##    carrier mean_ad sd_ad IQR_ad     n
+##    &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;
+##  1 F9        22.4   61.0   34     189
+##  2 YV        21.4   57.1   54.8   158
+##  3 FL        16.7   47.5   28     823
+##  4 EV        16.7   48.1   41   12310
+##  5 MQ        10.8   41.0   29    5999
+##  6 B6        10.1   40.3   30   10040
+##  7 OO        10     26.6   35       5
+##  8 WN         8.69  43.7   30    3008
+##  9 9E         8.29  45.5   34    3395
+## 10 UA         3.59  39.8   28   13580
+## 11 US         2.31  33.5   23    4629
+## 12 AA         1.45  43.0   30    7060
+## 13 DL         1.27  39.2   26   10388
+## 14 VX         1.13  44.6   28     965
+## 15 AS        -5.63  41.2   29     121
+## 16 HA        -8.22  36.1   35.5    64</code></pre>
+<pre class="r"><code># Plot violin plot of arr_delay against carrier, coloring by carrier
+# reversing the order from high to low
+delay_carrier_box = 
+  ggplot(df_2013, aes(x = reorder(carrier, -arr_delay), y = arr_delay, fill = carrier)) +
+  geom_violin(trim = FALSE, scale = &quot;width&quot;, alpha = 0.7) +
+  labs(title = &quot;Violin Plot of Arrival Delay by Carrier&quot;,
+       x = &quot;Carrier&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+delay_carrier_box</code></pre>
+<p><img src="EDA_backup_files/figure-html/carrier_delay-1.png" width="90%" /></p>
+</div>
+<div id="arrival-delay-by-month" class="section level2">
+<h2>Arrival Delay by Month</h2>
+<pre class="r"><code>df_2013 %&gt;%
+  group_by(month) %&gt;%
+  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %&gt;% 
+  arrange(desc(mean_ad))</code></pre>
+<pre><code>## # A tibble: 12 × 5
+##    month mean_ad sd_ad IQR_ad     n
+##    &lt;fct&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;
+##  1 Jul     17.3   58.8   43    4053
+##  2 Jun     16.1   53.6   40    6465
+##  3 Apr     14.3   48.4   35    8496
+##  4 Dec      9.89  37.4   27.2  3828
+##  5 Jan      9.12  40.9   30    6417
+##  6 Aug      7.60  38.5   31    3726
+##  7 Mar      5.20  40.5   29   10399
+##  8 Feb      3.56  36.8   27    6925
+##  9 May      2.32  42.5   30    5228
+## 10 Nov      2.31  31.0   25    8202
+## 11 Oct      1.27  33.7   24    4812
+## 12 Sep     -1.56  35.6   25    4183</code></pre>
+<pre class="r"><code># Plot violin plot of arr_delay against month, coloring by month
+# reversing the order from high to low
+delay_month_box = 
+  ggplot(df_2013, aes(x = reorder(month, -arr_delay), y = arr_delay, fill = month)) +
+  geom_violin(trim = FALSE, scale = &quot;width&quot;, alpha = 0.7) +
+  labs(title = &quot;Violin Plot of Arrival Delay by Month&quot;,
+       x = &quot;Month&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+delay_month_box</code></pre>
+<p><img src="EDA_backup_files/figure-html/month_delay-1.png" width="90%" /></p>
+</div>
+<div id="flight" class="section level2">
+<h2>Flight</h2>
+</div>
+<div id="tailnum" class="section level2">
+<h2>Tailnum</h2>
+<pre class="r"><code>flights_delay &lt;- 
+  df_2013 %&gt;% 
+  group_by(tailnum) %&gt;%
+  summarize(
+    count = n(),
+    avg_delay = mean(arr_delay)
+  )</code></pre>
+<pre class="r"><code>flights_delay</code></pre>
+<pre><code>## # A tibble: 3,737 × 3
+##    tailnum count avg_delay
+##    &lt;chr&gt;   &lt;int&gt;     &lt;dbl&gt;
+##  1 D942DN      2     16.5 
+##  2 N0EGMQ     79     12.4 
+##  3 N10156     39      7.56
+##  4 N102UW      8     27.8 
+##  5 N103US      7     -5.86
+##  6 N104UW      3    -19.7 
+##  7 N10575     75     26.0 
+##  8 N105UW     12     -9.08
+##  9 N107US      7     12.9 
+## 10 N108UW     11      7.82
+## # ℹ 3,727 more rows</code></pre>
+<pre class="r"><code>ggplot(flights_delay, aes(avg_delay)) + 
+  geom_freqpoly(color = &#39;skyblue&#39;) +
+  labs(title = &quot;Distribution of Average Arrival Delay by Flight&quot;,
+       x = &quot;Average Arrival Delay&quot;
+       )</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="EDA_backup_files/figure-html/unnamed-chunk-3-1.png" width="90%" /></p>
+<pre class="r"><code>max_delay &lt;- 
+  flights_delay %&gt;% 
+  arrange(-avg_delay)
+
+max_delay</code></pre>
+<pre><code>## # A tibble: 3,737 × 3
+##    tailnum count avg_delay
+##    &lt;chr&gt;   &lt;int&gt;     &lt;dbl&gt;
+##  1 N305AS      1      196 
+##  2 N933LR      2      176.
+##  3 N621SW      1      175 
+##  4 N635AA      5      161.
+##  5 N136DL      1      146 
+##  6 N610WN      1      141 
+##  7 N540US      2      140.
+##  8 N299AT      1      139 
+##  9 N938LR      1      128 
+## 10 N354AT      3      116.
+## # ℹ 3,727 more rows</code></pre>
+<p>N305AS had an average delay of 196 minutes, which is about 3
+hours.</p>
+</div>
+<div id="on-time-arrival-rate-for-nyc-airports" class="section level2">
+<h2>On time arrival rate for NYC airports</h2>
+<p>Suppose a flight that is delayed for less than 5 minutes is basically
+“on time”. Assume we onsider any flight delayed for 5 minutes of more to
+be “delayed”</p>
+<pre class="r"><code>df_2013 &lt;- 
+  df_2013 %&gt;% 
+  mutate(
+    ontime = arr_delay &lt; 5
+    )
+
+df_2013 &lt;- 
+  df_2013 %&gt;%
+  mutate(
+    arr_type = ifelse(arr_delay &lt; 5, &quot;on time&quot;, &quot;delayed&quot;)
+    )
+
+df_2013 %&gt;% 
+  group_by(origin) %&gt;% 
+  summarise(ontime_prop = sum(ontime == TRUE) / n()) %&gt;% 
+  arrange(desc(ontime_prop))</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##   origin ontime_prop
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 LGA          0.661
+## 2 JFK          0.636
+## 3 EWR          0.625</code></pre>
+<pre class="r"><code>ggplot(data = df_2013, aes(x = origin, fill = arr_type)) +
+  geom_bar()+
+  scale_fill_brewer(palette = &quot;Set3&quot;) + 
+  labs(title = &quot;Bar Plot of On-time Arrival for NYC Airports&quot;,
+       x = &quot;Origin&quot;,
+       y = &quot;Count of on-time arrival&quot;)</code></pre>
+<p><img src="EDA_backup_files/figure-html/on_time_arr-1.png" width="90%" /></p>
+<p>The plot shows that LGA airport has the best on time arrival rate and
+EWR airport has the worst.</p>
+</div>
+<div id="average-speed-for-flight-air_time-distance"
+class="section level2">
+<h2>Average Speed for flight (air_time &amp; distance)</h2>
+<p>We set average speed = distance / (air_time/60) in miles/hr.</p>
+<pre class="r"><code>df_2013 &lt;- 
+  df_2013 %&gt;% 
+  mutate(
+    avg_speed = distance / (air_time/60)
+    )
+
+ggplot(data = df_2013, aes(x = distance, y = avg_speed, color = avg_speed)) + 
+  geom_point(alpha = .6) +
+  scale_fill_brewer(palette = &quot;Set3&quot;) + 
+  labs(title = &quot;Scatter Plot of Average Flight Speed against Distance&quot;,
+       x = &quot;Distance&quot;,
+       y = &quot;Average Flight Speed&quot;)</code></pre>
+<p><img src="EDA_backup_files/figure-html/avg_speed-1.png" width="90%" /></p>
+<pre class="r"><code>ggplot(data = df_2013, aes(x = avg_speed, y = arr_delay, color = avg_speed)) + 
+  geom_point(alpha = .4) +
+  scale_fill_brewer(palette = &quot;Set3&quot;) + 
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) + 
+  labs(title = &quot;Scatter Plot of Average Flight Speed against Arrival Delay&quot;,
+       x = &quot;Average Flight Speed&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="EDA_backup_files/figure-html/avg_speed-2.png" width="90%" /></p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
