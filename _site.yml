@@ -7,6 +7,9 @@ navbar:
   right:
     - text: "About"
       href: about.html
+      menu:
+      - text: "Us"
+        href: 
     - text: "Final Report"
       href: report.html
     - text: "Analysis"
