@@ -5,15 +5,17 @@ date: "2023-12-07"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 # Methodology
 
 For our project, we aim to predict the plane delay. We split the data from 2013 nyc into train and test. Also, to verify the generality, we also applied the predict model t0 2017 dataset... TBC
 
 
 ```{r libraries, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      fig.align = 'center')
+
 library(tidyverse)
 library(tidymodels)
 library(yardstick)
@@ -21,38 +23,46 @@ library(vip)
 library(pROC)
 library(caret)
 library(stargazer)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
 ```
 
 ```{r load_data, include = FALSE}
 df_2013_raw =  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
 df_2017_raw = read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
 
-df_2013_raw = df_2013_raw |>
+dest_int =  intersect(unique(df_2017_raw$dest),unique(df_2013_raw$dest))
+carrier_int =  intersect(unique(df_2017_raw$carrier),unique(df_2013_raw$carrier))
+
+df_2013 = df_2013_raw |>
   mutate(if_delay = if_else(arr_delay >0,1,0),
          if_delay = factor(if_delay),
          #carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
          #month = factor(month,levels = 1:12, labels = month.abb[1:12]),
          arrival_date = paste(year,"-",month,"-",day, sep = ""),
-         arrival_date = date(arrival_date)
+         arrival_date = date(arrival_date),
+         hour = if_else(hour >=5 & hour < 12,'Morning',
+                        if_else(hour >=12 & hour < 17,'Afternoon',
+                                if_else(hour >=17 & hour <= 21,'Evening','Night')))
+        # hour = factor(flight,ordered = TRUE)
          ) |>
-  filter(!(dest %in% setdiff(unique(df_2013_raw$dest),unique(df_2017_raw$dest))),
-         !(carrier %in% setdiff(unique(df_2013_raw$carrier),unique(df_2017_raw$carrier))))
+  filter(dest %in% dest_int,
+         carrier %in% carrier_int)|>
+  select(-tailnum,-arr_delay, -year, -month, -day, -flight) 
 
-df_2013 = df_2013_raw |>
-  dplyr::select(-`...1`,-tailnum,-arr_delay,
-           -year, -month, -day) 
-df_2017_raw = df_2017_raw |>
+df_2017 = df_2017_raw |>
   mutate(if_delay = if_else(arr_delay >0,1,0),
          if_delay = factor(if_delay),
-         #carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
-         #month = factor(month,levels = 1:12, labels = month.abb[1:12])
          arrival_date = paste(year,"-",month,"-",day, sep = ""),
-         arrival_date = date(arrival_date))|>
-  filter(!(dest %in% setdiff(unique(df_2017_raw$dest),unique(df_2013_raw$dest))),
-         !(carrier %in% setdiff(unique(df_2017_raw$carrier),unique(df_2013_raw$carrier)))) 
-df_2017 = df_2017_raw |>
-    dplyr::select(-`...1`,-tailnum,-arr_delay,
-           -year, -month, -day) 
+         arrival_date = date(arrival_date),
+         hour = if_else(hour >=5 & hour < 12,'Morning',
+                        if_else(hour >=12 & hour < 17,'Afternoon',
+                                if_else(hour >=17 & hour <= 21,'Evening','Night'))))|>
+  filter(dest %in% intersect(unique(df_2017_raw$dest),unique(df_2013$dest)),
+         carrier %in% intersect(unique(df_2017_raw$carrier),unique(df_2013$carrier)))  |>
+  select(-tailnum,-arr_delay,
+           -year, -month, -day, -flight) 
 ```
 
 # Construct a Prediction Model on 2013 data set
@@ -85,6 +95,7 @@ lr_recipe <-
   step_zv(all_predictors()) %>% 
   step_normalize(all_predictors())
 
+
 lr_workflow <- 
   workflow() %>% 
   add_model(lr_mod) %>% 
@@ -97,25 +108,12 @@ lr_reg_grid <- tibble(penalty = 10^seq(-4, -1, length.out = 30))
 #lr_res <- 
 #  lr_workflow %>% 
 #  tune_grid(val_set,
-#            grid = lr_reg_grid,
-#            control = control_grid(save_pred = TRUE),
+ #           grid = lr_reg_grid,
+ #           control = control_grid(save_pred = TRUE),
 #            metrics = metric_set(roc_auc))
 #saveRDS(lr_res, file = "Prediction_Env/lr_res.rds")
 lr_res <- readRDS("Prediction_Env/lr_res.rds")
 
-lr_plot <- 
-  lr_res %>% 
-  collect_metrics() %>% 
-  ggplot(aes(x = penalty, y = mean)) + 
-  geom_point() + 
-  geom_line() + 
-  ylab("Area under the ROC Curve") +
-  scale_x_log10(labels = scales::label_number())
-
-lr_plot + theme_minimal()
-```
-
-```{r print the estimate}
 # select the best penalty with the highest AUC
 lr_best <- 
   lr_res %>% 
@@ -123,11 +121,26 @@ lr_best <-
   arrange(desc(mean)) %>% 
   slice(1) 
 
+
+lr_res %>% 
+  collect_metrics() %>% 
+  ggplot(aes(x = penalty, y = mean)) + 
+  geom_point(col = "skyblue") + 
+  geom_line(col = "skyblue") + 
+  ylab("Area under the ROC Curve") +
+  geom_vline(aes(xintercept =  lr_best%>%pull(penalty) ), color = "coral")+
+  scale_x_log10(labels = scales::label_number())+
+  theme_minimal()
+  
+```
+
+```{r print the estimate}
 lr_auc <- 
   lr_res %>% 
   collect_predictions(parameters = lr_best) %>% 
   roc_curve(if_delay, .pred_0) %>% 
   mutate(model = "Logistic Regression")
+
 #autoplot(lr_auc) +  theme_minimal()
 # calculate auc
 #lr_res %>% 
@@ -148,7 +161,8 @@ coeff <- tidy(lr_final) %>%
   filter(term != '(Intercept)') %>% 
   slice(1:20)
 ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
-  geom_col() + coord_flip()+
+   geom_col(fill = 'skyblue') + coord_flip()+
+  geom_text(aes(label = round(estimate,2)))+
   xlab('Predictors')+
   ylab('Estimate')+
   theme_minimal()+
@@ -160,6 +174,7 @@ ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) +
 ```{r rf}
 
 cores <- parallel::detectCores()
+
 #cores
 rf_mod <- 
   rand_forest(mtry = tune(), min_n = tune(), trees = 1000) %>% 
@@ -168,7 +183,6 @@ rf_mod <-
 rf_recipe <- 
   recipe(if_delay ~ ., data = df_other) %>% 
   step_date(arrival_date) %>% 
-  #step_holiday(arrival_date, holidays = holidays) %>% 
   step_rm(arrival_date)  %>% 
   step_dummy(all_nominal_predictors()) 
 
@@ -198,9 +212,9 @@ rf_auc <-
 bind_rows(rf_auc, lr_auc) %>% 
   ggplot(aes(x = 1 - specificity, y = sensitivity, col = model)) + 
   geom_path(lwd = 1.5, alpha = 0.8) +
+  scale_color_manual(values = c("skyblue", "coral")) +
   geom_abline(lty = 3) + 
   coord_equal() + 
-  scale_color_viridis_d(option = "plasma", end = .6) +
   theme_minimal()
 ```
 
@@ -208,7 +222,7 @@ bind_rows(rf_auc, lr_auc) %>%
 ```{r on the test set}
 # the last model
 last_rf_mod <- 
-  rand_forest(mtry = 39, min_n = 27, trees = 1000) %>% 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %>% 
   set_engine("ranger", num.threads = cores, importance = "impurity") %>% 
   set_mode("classification")
 # the last workflow
@@ -226,7 +240,7 @@ last_rf_fit <- readRDS("Prediction_Env/last_rf_fit.rds")
 # plot the feature importance
 last_rf_fit %>% 
   extract_fit_parsnip() %>% 
-  vip(num_features = 20)+ 
+  vip(num_features = 20,aesthetics = list(fill = "skyblue"))+ 
   theme_minimal()
 
 rf_auc = last_rf_fit %>% 
@@ -247,10 +261,11 @@ df_2017_rf = rf_recipe %>%
   bake(new_data = df_2017)
 
 rf_fit <- 
-  rand_forest(mtry = 39, min_n = 27, trees = 1000) %>% 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %>% 
   set_engine("ranger", num.threads = cores, importance = "impurity") %>% 
   set_mode("classification") %>%
   fit(if_delay~., data = df_2017_rf)
+
 pred_class <- predict(rf_fit,
                       new_data = df_2017_rf,
                       type = "prob")
@@ -288,6 +303,6 @@ rownames(conf_matrix) = c("Logistic","Random Forrest")
 ```
 
 <table style="text-align:center"><tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>Sensitivity</td><td>Specificity</td><td>Pos Pred Value</td><td>Neg Pred Value</td><td>Precision</td><td>Recall</td><td>F1</td><td>Prevalence</td><td>Detection Rate</td><td>Detection Prevalence</td><td>Balanced Accuracy</td></tr>
-<tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Logistic</td><td>0.876</td><td>0.470</td><td>0.759</td><td>0.666</td><td>0.759</td><td>0.876</td><td>0.813</td><td>0.655</td><td>0.574</td><td>0.757</td><td>0.673</td></tr>
-<tr><td style="text-align:left">Random Forrest</td><td>0.974</td><td>0.724</td><td>0.871</td><td>0.936</td><td>0.871</td><td>0.974</td><td>0.919</td><td>0.655</td><td>0.638</td><td>0.733</td><td>0.849</td></tr>
+<tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Logistic</td><td>0.880</td><td>0.470</td><td>0.759</td><td>0.673</td><td>0.759</td><td>0.880</td><td>0.815</td><td>0.655</td><td>0.577</td><td>0.760</td><td>0.675</td></tr>
+<tr><td style="text-align:left">Random Forrest</td><td>0.970</td><td>0.702</td><td>0.861</td><td>0.925</td><td>0.861</td><td>0.970</td><td>0.912</td><td>0.655</td><td>0.636</td><td>0.738</td><td>0.836</td></tr>
 <tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr></table>

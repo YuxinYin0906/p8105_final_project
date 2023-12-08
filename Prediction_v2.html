@@ -317,13 +317,8 @@ class="section level1">
 <h2>Logistic Regression</h2>
 <pre class="r"><code>val_set &lt;- validation_split(df_other, 
                             strata = if_delay, 
-                            prop = 0.80)</code></pre>
-<pre><code>## Warning: `validation_split()` was deprecated in rsample 1.2.0.
-## ℹ Please use `initial_validation_split()` instead.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-## generated.</code></pre>
-<pre class="r"><code>lr_mod &lt;- 
+                            prop = 0.80)
+lr_mod &lt;- 
   logistic_reg(penalty = tune(), mixture = 1) %&gt;% 
   set_engine(&quot;glmnet&quot;)
 
@@ -334,6 +329,7 @@ lr_recipe &lt;-
   step_dummy(all_nominal_predictors()) %&gt;% 
   step_zv(all_predictors()) %&gt;% 
   step_normalize(all_predictors())
+
 
 lr_workflow &lt;- 
   workflow() %&gt;% 
@@ -347,35 +343,36 @@ lr_reg_grid &lt;- tibble(penalty = 10^seq(-4, -1, length.out = 30))
 #lr_res &lt;- 
 #  lr_workflow %&gt;% 
 #  tune_grid(val_set,
-#            grid = lr_reg_grid,
-#            control = control_grid(save_pred = TRUE),
+ #           grid = lr_reg_grid,
+ #           control = control_grid(save_pred = TRUE),
 #            metrics = metric_set(roc_auc))
 #saveRDS(lr_res, file = &quot;Prediction_Env/lr_res.rds&quot;)
 lr_res &lt;- readRDS(&quot;Prediction_Env/lr_res.rds&quot;)
 
-lr_plot &lt;- 
-  lr_res %&gt;% 
-  collect_metrics() %&gt;% 
-  ggplot(aes(x = penalty, y = mean)) + 
-  geom_point() + 
-  geom_line() + 
-  ylab(&quot;Area under the ROC Curve&quot;) +
-  scale_x_log10(labels = scales::label_number())
-
-lr_plot + theme_minimal()</code></pre>
-<p><img src="Prediction_v2_files/figure-html/lr%20find%20the%20best%20hyperparameter-1.png" width="672" /></p>
-<pre class="r"><code># select the best penalty with the highest AUC
+# select the best penalty with the highest AUC
 lr_best &lt;- 
   lr_res %&gt;% 
   collect_metrics() %&gt;% 
   arrange(desc(mean)) %&gt;% 
   slice(1) 
 
-lr_auc &lt;- 
+
+lr_res %&gt;% 
+  collect_metrics() %&gt;% 
+  ggplot(aes(x = penalty, y = mean)) + 
+  geom_point(col = &quot;skyblue&quot;) + 
+  geom_line(col = &quot;skyblue&quot;) + 
+  ylab(&quot;Area under the ROC Curve&quot;) +
+  geom_vline(aes(xintercept =  lr_best%&gt;%pull(penalty) ), color = &quot;coral&quot;)+
+  scale_x_log10(labels = scales::label_number())+
+  theme_minimal()</code></pre>
+<p><img src="Prediction_v2_files/figure-html/lr%20find%20the%20best%20hyperparameter-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>lr_auc &lt;- 
   lr_res %&gt;% 
   collect_predictions(parameters = lr_best) %&gt;% 
   roc_curve(if_delay, .pred_0) %&gt;% 
   mutate(model = &quot;Logistic Regression&quot;)
+
 #autoplot(lr_auc) +  theme_minimal()
 # calculate auc
 #lr_res %&gt;% 
@@ -403,16 +400,18 @@ coeff &lt;- tidy(lr_final) %&gt;%
 ##     expand, pack, unpack</code></pre>
 <pre><code>## Loaded glmnet 4.1-8</code></pre>
 <pre class="r"><code>ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
-  geom_col() + coord_flip()+
+   geom_col(fill = &#39;skyblue&#39;) + coord_flip()+
+  geom_text(aes(label = round(estimate,2)))+
   xlab(&#39;Predictors&#39;)+
   ylab(&#39;Estimate&#39;)+
   theme_minimal()+
   theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="Prediction_v2_files/figure-html/print%20the%20estimate-1.png" width="672" /></p>
+<p><img src="Prediction_v2_files/figure-html/print%20the%20estimate-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="random-forest" class="section level2">
 <h2>Random Forest</h2>
 <pre class="r"><code>cores &lt;- parallel::detectCores()
+
 #cores
 rf_mod &lt;- 
   rand_forest(mtry = tune(), min_n = tune(), trees = 1000) %&gt;% 
@@ -421,7 +420,6 @@ rf_mod &lt;-
 rf_recipe &lt;- 
   recipe(if_delay ~ ., data = df_other) %&gt;% 
   step_date(arrival_date) %&gt;% 
-  #step_holiday(arrival_date, holidays = holidays) %&gt;% 
   step_rm(arrival_date)  %&gt;% 
   step_dummy(all_nominal_predictors()) 
 
@@ -451,14 +449,14 @@ rf_auc &lt;-
 bind_rows(rf_auc, lr_auc) %&gt;% 
   ggplot(aes(x = 1 - specificity, y = sensitivity, col = model)) + 
   geom_path(lwd = 1.5, alpha = 0.8) +
+  scale_color_manual(values = c(&quot;skyblue&quot;, &quot;coral&quot;)) +
   geom_abline(lty = 3) + 
   coord_equal() + 
-  scale_color_viridis_d(option = &quot;plasma&quot;, end = .6) +
   theme_minimal()</code></pre>
-<p><img src="Prediction_v2_files/figure-html/rf-1.png" width="672" /></p>
+<p><img src="Prediction_v2_files/figure-html/rf-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># the last model
 last_rf_mod &lt;- 
-  rand_forest(mtry = 39, min_n = 27, trees = 1000) %&gt;% 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %&gt;% 
   set_engine(&quot;ranger&quot;, num.threads = cores, importance = &quot;impurity&quot;) %&gt;% 
   set_mode(&quot;classification&quot;)
 # the last workflow
@@ -476,9 +474,9 @@ last_rf_fit &lt;- readRDS(&quot;Prediction_Env/last_rf_fit.rds&quot;)
 # plot the feature importance
 last_rf_fit %&gt;% 
   extract_fit_parsnip() %&gt;% 
-  vip(num_features = 20)+ 
+  vip(num_features = 20,aesthetics = list(fill = &quot;skyblue&quot;))+ 
   theme_minimal()</code></pre>
-<p><img src="Prediction_v2_files/figure-html/on%20the%20test%20set-1.png" width="672" /></p>
+<p><img src="Prediction_v2_files/figure-html/on%20the%20test%20set-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>rf_auc = last_rf_fit %&gt;% 
   collect_predictions() %&gt;% 
   roc_auc(if_delay, .pred_0) %&gt;%pull(.estimate)
@@ -496,17 +494,18 @@ df_2017_rf = rf_recipe %&gt;%
   bake(new_data = df_2017)
 
 rf_fit &lt;- 
-  rand_forest(mtry = 39, min_n = 27, trees = 1000) %&gt;% 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %&gt;% 
   set_engine(&quot;ranger&quot;, num.threads = cores, importance = &quot;impurity&quot;) %&gt;% 
   set_mode(&quot;classification&quot;) %&gt;%
   fit(if_delay~., data = df_2017_rf)
+
 pred_class &lt;- predict(rf_fit,
                       new_data = df_2017_rf,
                       type = &quot;prob&quot;)
 roc(df_2017_rf$if_delay, pred_class$.pred_0)$auc</code></pre>
 <pre><code>## Setting levels: control = 0, case = 1</code></pre>
 <pre><code>## Setting direction: controls &gt; cases</code></pre>
-<pre><code>## Area under the curve: 0.9729</code></pre>
+<pre><code>## Area under the curve: 0.9652</code></pre>
 <pre class="r"><code>predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
 predicted_class = factor(predicted_class)
 # 创建混淆矩阵
@@ -529,7 +528,7 @@ pred_class &lt;- predict(lr_fit,
 roc(df_2017_lr$if_delay, pred_class$.pred_0)$auc</code></pre>
 <pre><code>## Setting levels: control = 0, case = 1
 ## Setting direction: controls &gt; cases</code></pre>
-<pre><code>## Area under the curve: 0.7767</code></pre>
+<pre><code>## Area under the curve: 0.7799</code></pre>
 <pre class="r"><code>predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
 predicted_class = factor(predicted_class)
 # 创建混淆矩阵
@@ -591,7 +590,7 @@ Balanced Accuracy
 Logistic
 </td>
 <td>
-0.876
+0.880
 </td>
 <td>
 0.470
@@ -600,28 +599,28 @@ Logistic
 0.759
 </td>
 <td>
-0.666
+0.673
 </td>
 <td>
 0.759
 </td>
 <td>
-0.876
+0.880
 </td>
 <td>
-0.813
+0.815
 </td>
 <td>
 0.655
 </td>
 <td>
-0.574
+0.577
 </td>
 <td>
-0.757
+0.760
 </td>
 <td>
-0.673
+0.675
 </td>
 </tr>
 <tr>
@@ -629,37 +628,37 @@ Logistic
 Random Forrest
 </td>
 <td>
-0.974
+0.970
 </td>
 <td>
-0.724
+0.702
 </td>
 <td>
-0.871
+0.861
 </td>
 <td>
-0.936
+0.925
 </td>
 <td>
-0.871
+0.861
 </td>
 <td>
-0.974
+0.970
 </td>
 <td>
-0.919
+0.912
 </td>
 <td>
 0.655
 </td>
 <td>
-0.638
+0.636
 </td>
 <td>
-0.733
+0.738
 </td>
 <td>
-0.849
+0.836
 </td>
 </tr>
 <tr>
