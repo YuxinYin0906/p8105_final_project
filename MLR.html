@@ -315,8 +315,8 @@ corrplot(M, add = TRUE, type = &#39;lower&#39;, method = &#39;ellipse&#39;, orde
 
 df_2013_mlr = df_2013_mlr |&gt;
  dplyr::select(-wind_speed,-distance)</code></pre>
-<pre class="r"><code>fit_AIC = lm(formula = arr_delay ~ origin + hour + carrier + flight + dest + 
-    air_time + wind_dir + pressure + visib + arrival_date,
+<pre class="r"><code>fit_AIC = lm(formula = arr_delay ~ origin + hour + carrier + dest + air_time + minute + 
+    wind_dir + pressure + visib + arrival_date,
     data = df_2013_mlr)
 #summary(fit_AIC)
 
@@ -371,14 +371,14 @@ arr_delay
 originJFK
 </td>
 <td>
--0.114<sup>***</sup>
+-0.108<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.144, -0.085)
+(-0.138, -0.079)
 </td>
 </tr>
 <tr>
@@ -392,14 +392,14 @@ originJFK
 originLGA
 </td>
 <td>
--0.056<sup>***</sup>
+-0.065<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.081, -0.032)
+(-0.089, -0.040)
 </td>
 </tr>
 <tr>
@@ -410,17 +410,59 @@ originLGA
 </tr>
 <tr>
 <td style="text-align:left">
-hour
+hourEvening
 </td>
 <td>
-0.167<sup>***</sup>
+0.268<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.159, 0.175)
+(0.247, 0.288)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+hourMorning
+</td>
+<td>
+-0.173<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(-0.193, -0.154)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+hourNight
+</td>
+<td>
+0.181<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.083, 0.278)
 </td>
 </tr>
 <tr>
@@ -434,14 +476,14 @@ hour
 carrierAS
 </td>
 <td>
--0.258<sup>***</sup>
+-0.278<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.446, -0.070)
+(-0.467, -0.090)
 </td>
 </tr>
 <tr>
@@ -455,14 +497,14 @@ carrierAS
 carrierB6
 </td>
 <td>
-0.140<sup>***</sup>
+0.162<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.101, 0.180)
+(0.122, 0.201)
 </td>
 </tr>
 <tr>
@@ -476,14 +518,14 @@ carrierB6
 carrierDL
 </td>
 <td>
--0.057<sup>***</sup>
+-0.048<sup>**</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.095, -0.018)
+(-0.086, -0.010)
 </td>
 </tr>
 <tr>
@@ -497,14 +539,14 @@ carrierDL
 carrierEV
 </td>
 <td>
-0.292<sup>***</sup>
+0.220<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.224, 0.360)
+(0.170, 0.271)
 </td>
 </tr>
 <tr>
@@ -518,14 +560,14 @@ carrierEV
 carrierF9
 </td>
 <td>
-0.338<sup>***</sup>
+0.282<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.191, 0.485)
+(0.135, 0.429)
 </td>
 </tr>
 <tr>
@@ -539,14 +581,14 @@ carrierF9
 carrierHA
 </td>
 <td>
--0.391<sup>***</sup>
+-0.343<sup>**</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.672, -0.110)
+(-0.624, -0.061)
 </td>
 </tr>
 <tr>
@@ -560,14 +602,14 @@ carrierHA
 carrierOO
 </td>
 <td>
-0.078
+-0.074
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.753, 0.909)
+(-0.904, 0.755)
 </td>
 </tr>
 <tr>
@@ -581,14 +623,14 @@ carrierOO
 carrierUA
 </td>
 <td>
--0.006
+0.003
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.044, 0.032)
+(-0.035, 0.040)
 </td>
 </tr>
 <tr>
@@ -602,14 +644,14 @@ carrierUA
 carrierVX
 </td>
 <td>
--0.046
+-0.026
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.116, 0.024)
+(-0.096, 0.044)
 </td>
 </tr>
 <tr>
@@ -623,35 +665,14 @@ carrierVX
 carrierWN
 </td>
 <td>
-0.092<sup>***</sup>
+0.077<sup>**</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.028, 0.156)
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-flight
-</td>
-<td>
--0.045<sup>***</sup>
-</td>
-</tr>
-<tr>
-<td style="text-align:left">
-</td>
-<td>
-(-0.066, -0.023)
+(0.014, 0.140)
 </td>
 </tr>
 <tr>
@@ -665,14 +686,14 @@ flight
 destACK
 </td>
 <td>
-3.736<sup>***</sup>
+3.683<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.194, 4.278)
+(3.140, 4.225)
 </td>
 </tr>
 <tr>
@@ -686,14 +707,14 @@ destACK
 destALB
 </td>
 <td>
-3.963<sup>***</sup>
+3.929<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.502, 4.423)
+(3.468, 4.390)
 </td>
 </tr>
 <tr>
@@ -707,14 +728,14 @@ destALB
 destATL
 </td>
 <td>
-2.717<sup>***</sup>
+2.670<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.309, 3.125)
+(2.261, 3.078)
 </td>
 </tr>
 <tr>
@@ -728,14 +749,14 @@ destATL
 destAUS
 </td>
 <td>
-0.780<sup>***</sup>
+0.743<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.377, 1.184)
+(0.339, 1.148)
 </td>
 </tr>
 <tr>
@@ -749,14 +770,14 @@ destAUS
 destAVL
 </td>
 <td>
-2.946<sup>***</sup>
+2.923<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.461, 3.431)
+(2.438, 3.409)
 </td>
 </tr>
 <tr>
@@ -770,14 +791,14 @@ destAVL
 destBDL
 </td>
 <td>
-3.991<sup>***</sup>
+3.931<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.528, 4.454)
+(3.467, 4.394)
 </td>
 </tr>
 <tr>
@@ -791,14 +812,14 @@ destBDL
 destBGR
 </td>
 <td>
-3.407<sup>***</sup>
+3.361<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.940, 3.873)
+(2.894, 3.828)
 </td>
 </tr>
 <tr>
@@ -812,14 +833,14 @@ destBGR
 destBHM
 </td>
 <td>
-2.403<sup>***</sup>
+2.327<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.933, 2.874)
+(1.855, 2.798)
 </td>
 </tr>
 <tr>
@@ -833,14 +854,14 @@ destBHM
 destBNA
 </td>
 <td>
-2.585<sup>***</sup>
+2.545<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.173, 2.996)
+(2.133, 2.957)
 </td>
 </tr>
 <tr>
@@ -854,14 +875,14 @@ destBNA
 destBOS
 </td>
 <td>
-3.807<sup>***</sup>
+3.749<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.385, 4.228)
+(3.327, 4.171)
 </td>
 </tr>
 <tr>
@@ -875,14 +896,14 @@ destBOS
 destBQN
 </td>
 <td>
-1.139<sup>***</sup>
+1.133<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.706, 1.571)
+(0.698, 1.567)
 </td>
 </tr>
 <tr>
@@ -896,14 +917,14 @@ destBQN
 destBTV
 </td>
 <td>
-3.742<sup>***</sup>
+3.702<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.316, 4.168)
+(3.275, 4.128)
 </td>
 </tr>
 <tr>
@@ -917,14 +938,14 @@ destBTV
 destBUF
 </td>
 <td>
-3.631<sup>***</sup>
+3.574<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.209, 4.053)
+(3.152, 3.996)
 </td>
 </tr>
 <tr>
@@ -938,14 +959,14 @@ destBUF
 destBUR
 </td>
 <td>
--1.432<sup>***</sup>
+-1.528<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.886, -0.978)
+(-1.983, -1.074)
 </td>
 </tr>
 <tr>
@@ -959,14 +980,14 @@ destBUR
 destBWI
 </td>
 <td>
-4.031<sup>***</sup>
+3.959<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.582, 4.480)
+(3.510, 4.408)
 </td>
 </tr>
 <tr>
@@ -980,14 +1001,14 @@ destBWI
 destCAE
 </td>
 <td>
-3.092<sup>***</sup>
+2.971<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.545, 3.639)
+(2.423, 3.518)
 </td>
 </tr>
 <tr>
@@ -1001,14 +1022,14 @@ destCAE
 destCHO
 </td>
 <td>
-3.443<sup>***</sup>
+3.354<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.808, 4.078)
+(2.718, 3.990)
 </td>
 </tr>
 <tr>
@@ -1022,14 +1043,14 @@ destCHO
 destCHS
 </td>
 <td>
-2.925<sup>***</sup>
+2.870<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.508, 3.342)
+(2.453, 3.287)
 </td>
 </tr>
 <tr>
@@ -1043,14 +1064,14 @@ destCHS
 destCLE
 </td>
 <td>
-3.330<sup>***</sup>
+3.305<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.909, 3.750)
+(2.884, 3.726)
 </td>
 </tr>
 <tr>
@@ -1064,14 +1085,14 @@ destCLE
 destCLT
 </td>
 <td>
-3.290<sup>***</sup>
+3.230<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.873, 3.707)
+(2.813, 3.648)
 </td>
 </tr>
 <tr>
@@ -1085,14 +1106,14 @@ destCLT
 destCMH
 </td>
 <td>
-3.313<sup>***</sup>
+3.206<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.876, 3.750)
+(2.769, 3.644)
 </td>
 </tr>
 <tr>
@@ -1106,14 +1127,14 @@ destCMH
 destCVG
 </td>
 <td>
-3.045<sup>***</sup>
+2.985<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.627, 3.462)
+(2.566, 3.403)
 </td>
 </tr>
 <tr>
@@ -1127,14 +1148,14 @@ destCVG
 destDAY
 </td>
 <td>
-3.043<sup>***</sup>
+3.007<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.618, 3.468)
+(2.581, 3.432)
 </td>
 </tr>
 <tr>
@@ -1148,14 +1169,14 @@ destDAY
 destDCA
 </td>
 <td>
-3.995<sup>***</sup>
+3.945<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.565, 4.425)
+(3.514, 4.375)
 </td>
 </tr>
 <tr>
@@ -1169,14 +1190,14 @@ destDCA
 destDEN
 </td>
 <td>
-0.690<sup>***</sup>
+0.669<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.291, 1.088)
+(0.271, 1.068)
 </td>
 </tr>
 <tr>
@@ -1190,14 +1211,14 @@ destDEN
 destDFW
 </td>
 <td>
-1.013<sup>***</sup>
+0.984<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.613, 1.413)
+(0.583, 1.384)
 </td>
 </tr>
 <tr>
@@ -1211,14 +1232,14 @@ destDFW
 destDSM
 </td>
 <td>
-2.096<sup>***</sup>
+2.036<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.638, 2.554)
+(1.577, 2.494)
 </td>
 </tr>
 <tr>
@@ -1232,14 +1253,14 @@ destDSM
 destDTW
 </td>
 <td>
-3.084<sup>***</sup>
+3.026<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.670, 3.498)
+(2.612, 3.440)
 </td>
 </tr>
 <tr>
@@ -1253,14 +1274,14 @@ destDTW
 destEGE
 </td>
 <td>
-0.031
+-0.046
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.433, 0.495)
+(-0.510, 0.418)
 </td>
 </tr>
 <tr>
@@ -1274,14 +1295,14 @@ destEGE
 destFLL
 </td>
 <td>
-1.989<sup>***</sup>
+1.949<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.587, 2.391)
+(1.547, 2.351)
 </td>
 </tr>
 <tr>
@@ -1295,14 +1316,14 @@ destFLL
 destGRR
 </td>
 <td>
-3.073<sup>***</sup>
+3.050<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.641, 3.505)
+(2.617, 3.482)
 </td>
 </tr>
 <tr>
@@ -1316,14 +1337,14 @@ destGRR
 destGSO
 </td>
 <td>
-3.318<sup>***</sup>
+3.290<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.893, 3.742)
+(2.865, 3.715)
 </td>
 </tr>
 <tr>
@@ -1344,7 +1365,7 @@ destGSP
 <td style="text-align:left">
 </td>
 <td>
-(2.705, 3.574)
+(2.704, 3.574)
 </td>
 </tr>
 <tr>
@@ -1358,14 +1379,14 @@ destGSP
 destHNL
 </td>
 <td>
--6.062<sup>***</sup>
+-6.049<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-6.551, -5.574)
+(-6.538, -5.560)
 </td>
 </tr>
 <tr>
@@ -1379,14 +1400,14 @@ destHNL
 destHOU
 </td>
 <td>
-0.990<sup>***</sup>
+0.931<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.583, 1.396)
+(0.524, 1.339)
 </td>
 </tr>
 <tr>
@@ -1400,14 +1421,14 @@ destHOU
 destIAD
 </td>
 <td>
-3.918<sup>***</sup>
+3.824<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.494, 4.341)
+(3.401, 4.248)
 </td>
 </tr>
 <tr>
@@ -1421,14 +1442,14 @@ destIAD
 destIAH
 </td>
 <td>
-1.154<sup>***</sup>
+1.105<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.755, 1.553)
+(0.705, 1.504)
 </td>
 </tr>
 <tr>
@@ -1442,14 +1463,14 @@ destIAH
 destIND
 </td>
 <td>
-2.872<sup>***</sup>
+2.815<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.449, 3.296)
+(2.392, 3.239)
 </td>
 </tr>
 <tr>
@@ -1463,14 +1484,14 @@ destIND
 destJAC
 </td>
 <td>
-0.562
+0.478
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.575, 1.700)
+(-0.661, 1.616)
 </td>
 </tr>
 <tr>
@@ -1484,14 +1505,14 @@ destJAC
 destJAX
 </td>
 <td>
-2.521<sup>***</sup>
+2.488<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.108, 2.934)
+(2.074, 2.901)
 </td>
 </tr>
 <tr>
@@ -1505,14 +1526,14 @@ destJAX
 destLAS
 </td>
 <td>
--0.781<sup>***</sup>
+-0.820<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.181, -0.381)
+(-1.220, -0.419)
 </td>
 </tr>
 <tr>
@@ -1526,14 +1547,14 @@ destLAS
 destLAX
 </td>
 <td>
--1.232<sup>***</sup>
+-1.245<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.632, -0.833)
+(-1.645, -0.845)
 </td>
 </tr>
 <tr>
@@ -1547,14 +1568,14 @@ destLAX
 destLGB
 </td>
 <td>
--1.398<sup>***</sup>
+-1.461<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.824, -0.972)
+(-1.887, -1.034)
 </td>
 </tr>
 <tr>
@@ -1568,14 +1589,14 @@ destLGB
 destMCI
 </td>
 <td>
-1.795<sup>***</sup>
+1.753<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.384, 2.206)
+(1.341, 2.164)
 </td>
 </tr>
 <tr>
@@ -1589,14 +1610,14 @@ destMCI
 destMCO
 </td>
 <td>
-2.232<sup>***</sup>
+2.183<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.829, 2.636)
+(1.779, 2.587)
 </td>
 </tr>
 <tr>
@@ -1610,14 +1631,14 @@ destMCO
 destMDW
 </td>
 <td>
-2.673<sup>***</sup>
+2.650<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.259, 3.087)
+(2.236, 3.064)
 </td>
 </tr>
 <tr>
@@ -1631,14 +1652,14 @@ destMDW
 destMEM
 </td>
 <td>
-2.110<sup>***</sup>
+2.090<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.699, 2.521)
+(1.678, 2.502)
 </td>
 </tr>
 <tr>
@@ -1652,14 +1673,14 @@ destMEM
 destMHT
 </td>
 <td>
-3.928<sup>***</sup>
+3.877<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.487, 4.369)
+(3.436, 4.319)
 </td>
 </tr>
 <tr>
@@ -1673,14 +1694,14 @@ destMHT
 destMIA
 </td>
 <td>
-1.920<sup>***</sup>
+1.868<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.517, 2.323)
+(1.465, 2.271)
 </td>
 </tr>
 <tr>
@@ -1694,14 +1715,14 @@ destMIA
 destMKE
 </td>
 <td>
-2.701<sup>***</sup>
+2.663<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.286, 3.115)
+(2.248, 3.078)
 </td>
 </tr>
 <tr>
@@ -1715,14 +1736,14 @@ destMKE
 destMSN
 </td>
 <td>
-2.522<sup>***</sup>
+2.473<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.095, 2.949)
+(2.045, 2.900)
 </td>
 </tr>
 <tr>
@@ -1736,14 +1757,14 @@ destMSN
 destMSP
 </td>
 <td>
-1.999<sup>***</sup>
+1.956<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.594, 2.404)
+(1.551, 2.362)
 </td>
 </tr>
 <tr>
@@ -1757,14 +1778,14 @@ destMSP
 destMSY
 </td>
 <td>
-1.584<sup>***</sup>
+1.533<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.179, 1.988)
+(1.128, 1.938)
 </td>
 </tr>
 <tr>
@@ -1778,14 +1799,14 @@ destMSY
 destMVY
 </td>
 <td>
-3.671<sup>***</sup>
+3.566<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.112, 4.231)
+(3.006, 4.126)
 </td>
 </tr>
 <tr>
@@ -1799,14 +1820,14 @@ destMVY
 destMYR
 </td>
 <td>
-2.914<sup>***</sup>
+2.806<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.173, 3.655)
+(2.065, 3.548)
 </td>
 </tr>
 <tr>
@@ -1820,14 +1841,14 @@ destMYR
 destOAK
 </td>
 <td>
--1.810<sup>***</sup>
+-1.862<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-2.277, -1.344)
+(-2.329, -1.395)
 </td>
 </tr>
 <tr>
@@ -1841,14 +1862,14 @@ destOAK
 destOMA
 </td>
 <td>
-1.781<sup>***</sup>
+1.706<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.352, 2.211)
+(1.276, 2.136)
 </td>
 </tr>
 <tr>
@@ -1862,14 +1883,14 @@ destOMA
 destORD
 </td>
 <td>
-2.502<sup>***</sup>
+2.474<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.094, 2.909)
+(2.066, 2.881)
 </td>
 </tr>
 <tr>
@@ -1883,14 +1904,14 @@ destORD
 destORF
 </td>
 <td>
-3.664<sup>***</sup>
+3.645<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.228, 4.101)
+(3.208, 4.082)
 </td>
 </tr>
 <tr>
@@ -1904,14 +1925,14 @@ destORF
 destPBI
 </td>
 <td>
-2.092<sup>***</sup>
+2.058<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.688, 2.496)
+(1.654, 2.462)
 </td>
 </tr>
 <tr>
@@ -1925,14 +1946,14 @@ destPBI
 destPDX
 </td>
 <td>
--1.353<sup>***</sup>
+-1.404<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.770, -0.936)
+(-1.822, -0.987)
 </td>
 </tr>
 <tr>
@@ -1946,14 +1967,14 @@ destPDX
 destPHL
 </td>
 <td>
-4.415<sup>***</sup>
+4.422<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.636, 5.193)
+(3.643, 5.201)
 </td>
 </tr>
 <tr>
@@ -1967,14 +1988,14 @@ destPHL
 destPHX
 </td>
 <td>
--0.577<sup>***</sup>
+-0.646<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.981, -0.174)
+(-1.049, -0.242)
 </td>
 </tr>
 <tr>
@@ -1988,14 +2009,14 @@ destPHX
 destPIT
 </td>
 <td>
-3.570<sup>***</sup>
+3.528<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.142, 3.997)
+(3.100, 3.956)
 </td>
 </tr>
 <tr>
@@ -2009,14 +2030,14 @@ destPIT
 destPSE
 </td>
 <td>
-0.511<sup>**</sup>
+0.689<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.026, 0.997)
+(0.193, 1.184)
 </td>
 </tr>
 <tr>
@@ -2030,14 +2051,14 @@ destPSE
 destPSP
 </td>
 <td>
--1.201<sup>***</sup>
+-1.198<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-2.056, -0.346)
+(-2.054, -0.342)
 </td>
 </tr>
 <tr>
@@ -2051,14 +2072,14 @@ destPSP
 destPVD
 </td>
 <td>
-4.055<sup>***</sup>
+4.059<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.592, 4.518)
+(3.595, 4.522)
 </td>
 </tr>
 <tr>
@@ -2072,14 +2093,14 @@ destPVD
 destPWM
 </td>
 <td>
-3.887<sup>***</sup>
+3.846<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.461, 4.313)
+(3.419, 4.273)
 </td>
 </tr>
 <tr>
@@ -2093,14 +2114,14 @@ destPWM
 destRDU
 </td>
 <td>
-3.486<sup>***</sup>
+3.435<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.065, 3.908)
+(3.013, 3.857)
 </td>
 </tr>
 <tr>
@@ -2114,14 +2135,14 @@ destRDU
 destRIC
 </td>
 <td>
-3.756<sup>***</sup>
+3.699<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.330, 4.183)
+(3.272, 4.126)
 </td>
 </tr>
 <tr>
@@ -2135,14 +2156,14 @@ destRIC
 destROC
 </td>
 <td>
-3.723<sup>***</sup>
+3.696<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.297, 4.149)
+(3.269, 4.122)
 </td>
 </tr>
 <tr>
@@ -2156,14 +2177,14 @@ destROC
 destRSW
 </td>
 <td>
-1.772<sup>***</sup>
+1.741<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.367, 2.176)
+(1.336, 2.146)
 </td>
 </tr>
 <tr>
@@ -2177,14 +2198,14 @@ destRSW
 destSAN
 </td>
 <td>
--1.153<sup>***</sup>
+-1.197<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.558, -0.748)
+(-1.602, -0.791)
 </td>
 </tr>
 <tr>
@@ -2198,14 +2219,14 @@ destSAN
 destSAT
 </td>
 <td>
-0.522<sup>**</sup>
+0.486<sup>**</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.094, 0.951)
+(0.057, 0.915)
 </td>
 </tr>
 <tr>
@@ -2219,14 +2240,14 @@ destSAT
 destSAV
 </td>
 <td>
-2.820<sup>***</sup>
+2.835<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.393, 3.247)
+(2.407, 3.262)
 </td>
 </tr>
 <tr>
@@ -2240,14 +2261,14 @@ destSAV
 destSBN
 </td>
 <td>
-2.826<sup>***</sup>
+2.739<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.457, 4.195)
+(1.368, 4.109)
 </td>
 </tr>
 <tr>
@@ -2261,14 +2282,14 @@ destSBN
 destSDF
 </td>
 <td>
-2.896<sup>***</sup>
+2.892<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.464, 3.327)
+(2.460, 3.324)
 </td>
 </tr>
 <tr>
@@ -2282,14 +2303,14 @@ destSDF
 destSEA
 </td>
 <td>
--1.226<sup>***</sup>
+-1.262<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.632, -0.821)
+(-1.668, -0.856)
 </td>
 </tr>
 <tr>
@@ -2303,14 +2324,14 @@ destSEA
 destSFO
 </td>
 <td>
--1.436<sup>***</sup>
+-1.461<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.838, -1.034)
+(-1.863, -1.059)
 </td>
 </tr>
 <tr>
@@ -2324,14 +2345,14 @@ destSFO
 destSJC
 </td>
 <td>
--1.653<sup>***</sup>
+-1.740<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-2.119, -1.187)
+(-2.207, -1.274)
 </td>
 </tr>
 <tr>
@@ -2345,14 +2366,14 @@ destSJC
 destSJU
 </td>
 <td>
-1.128<sup>***</sup>
+1.086<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.727, 1.529)
+(0.684, 1.488)
 </td>
 </tr>
 <tr>
@@ -2366,14 +2387,14 @@ destSJU
 destSLC
 </td>
 <td>
--0.255
+-0.309
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.660, 0.149)
+(-0.713, 0.096)
 </td>
 </tr>
 <tr>
@@ -2387,14 +2408,14 @@ destSLC
 destSMF
 </td>
 <td>
--1.361<sup>***</sup>
+-1.431<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.855, -0.867)
+(-1.926, -0.937)
 </td>
 </tr>
 <tr>
@@ -2408,14 +2429,14 @@ destSMF
 destSNA
 </td>
 <td>
--1.454<sup>***</sup>
+-1.534<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-1.877, -1.032)
+(-1.957, -1.112)
 </td>
 </tr>
 <tr>
@@ -2429,14 +2450,14 @@ destSNA
 destSRQ
 </td>
 <td>
-1.929<sup>***</sup>
+1.880<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.513, 2.344)
+(1.463, 2.296)
 </td>
 </tr>
 <tr>
@@ -2450,14 +2471,14 @@ destSRQ
 destSTL
 </td>
 <td>
-2.275<sup>***</sup>
+2.234<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.868, 2.683)
+(1.826, 2.642)
 </td>
 </tr>
 <tr>
@@ -2471,14 +2492,14 @@ destSTL
 destSTT
 </td>
 <td>
-1.215<sup>***</sup>
+1.145<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(0.767, 1.664)
+(0.696, 1.594)
 </td>
 </tr>
 <tr>
@@ -2492,14 +2513,14 @@ destSTT
 destSYR
 </td>
 <td>
-3.839<sup>***</sup>
+3.804<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(3.406, 4.272)
+(3.370, 4.238)
 </td>
 </tr>
 <tr>
@@ -2513,14 +2534,14 @@ destSYR
 destTPA
 </td>
 <td>
-2.103<sup>***</sup>
+2.082<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.700, 2.507)
+(1.677, 2.486)
 </td>
 </tr>
 <tr>
@@ -2534,14 +2555,14 @@ destTPA
 destTYS
 </td>
 <td>
-3.414<sup>***</sup>
+3.350<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(2.925, 3.904)
+(2.860, 3.840)
 </td>
 </tr>
 <tr>
@@ -2555,14 +2576,14 @@ destTYS
 destXNA
 </td>
 <td>
-1.878<sup>***</sup>
+1.775<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.375, 2.381)
+(1.272, 2.278)
 </td>
 </tr>
 <tr>
@@ -2576,14 +2597,35 @@ destXNA
 air_time
 </td>
 <td>
-1.628<sup>***</sup>
+1.621<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(1.565, 1.691)
+(1.558, 1.684)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+minute
+</td>
+<td>
+0.010<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.002, 0.018)
 </td>
 </tr>
 <tr>
@@ -2618,14 +2660,14 @@ wind_dir
 pressure
 </td>
 <td>
--0.071<sup>***</sup>
+-0.072<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.079, -0.063)
+(-0.080, -0.064)
 </td>
 </tr>
 <tr>
@@ -2639,14 +2681,14 @@ pressure
 visib
 </td>
 <td>
--0.107<sup>***</sup>
+-0.106<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.115, -0.099)
+(-0.114, -0.099)
 </td>
 </tr>
 <tr>
@@ -2660,14 +2702,14 @@ visib
 arrival_date
 </td>
 <td>
-0.0001<sup>*</sup>
+0.0001
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-0.00001, 0.0001)
+(-0.00002, 0.0001)
 </td>
 </tr>
 <tr>
@@ -2681,14 +2723,14 @@ arrival_date
 Constant
 </td>
 <td>
--2.811<sup>***</sup>
+-2.614<sup>***</sup>
 </td>
 </tr>
 <tr>
 <td style="text-align:left">
 </td>
 <td>
-(-4.077, -1.546)
+(-3.880, -1.349)
 </td>
 </tr>
 <tr>
@@ -2714,7 +2756,7 @@ Observations
 R<sup>2</sup>
 </td>
 <td>
-0.113
+0.112
 </td>
 </tr>
 <tr>
@@ -2722,7 +2764,7 @@ R<sup>2</sup>
 Adjusted R<sup>2</sup>
 </td>
 <td>
-0.112
+0.110
 </td>
 </tr>
 <tr>
@@ -2730,7 +2772,7 @@ Adjusted R<sup>2</sup>
 Residual Std. Error
 </td>
 <td>
-0.943 (df = 57464)
+0.943 (df = 57462)
 </td>
 </tr>
 <tr>
@@ -2738,7 +2780,7 @@ Residual Std. Error
 F Statistic
 </td>
 <td>
-66.762<sup>***</sup> (df = 110; 57464)
+64.673<sup>***</sup> (df = 112; 57462)
 </td>
 </tr>
 <tr>
