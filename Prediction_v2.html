@@ -421,11 +421,13 @@ coeff &lt;- tidy(lr_final) %&gt;%
 <pre class="r"><code>ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
    geom_col(fill = &#39;skyblue&#39;) + coord_flip()+
   geom_text(aes(label = round(estimate,2)))+
-  xlab(&#39;Predictors&#39;)+
-  ylab(&#39;Estimate&#39;)+
   theme_minimal()+
-  theme(legend.position = &quot;none&quot;)</code></pre>
+  theme(legend.position = &quot;none&quot;) +  
+  labs(title = &quot;Feature Estimate of LASSO Regression&quot;,
+       x = &#39;Predictors&#39;,
+       y = &#39;Estimate&#39;)</code></pre>
 <p><img src="Prediction_v2_files/figure-html/print%20the%20estimate-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#ggsave(&#39;image/lr_varplot.png&#39;)</code></pre>
 </div>
 <div id="random-forest" class="section level2">
 <h2>Random Forest</h2>
@@ -494,9 +496,11 @@ last_rf_fit &lt;- readRDS(&quot;Prediction_Env/last_rf_fit.rds&quot;)
 last_rf_fit %&gt;% 
   extract_fit_parsnip() %&gt;% 
   vip(num_features = 20,aesthetics = list(fill = &quot;skyblue&quot;))+ 
-  theme_minimal()</code></pre>
+  theme_minimal() +  
+  labs(title = &quot;Feature Importance of Random Forest&quot;)</code></pre>
 <p><img src="Prediction_v2_files/figure-html/on%20the%20test%20set-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>rf_auc = last_rf_fit %&gt;% 
+<pre class="r"><code>#ggsave(&#39;image/rf_varplot.png&#39;)
+rf_auc = last_rf_fit %&gt;% 
   collect_predictions() %&gt;% 
   roc_auc(if_delay, .pred_0) %&gt;%pull(.estimate)
 # last_rf_fit %&gt;% 

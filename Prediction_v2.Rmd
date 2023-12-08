@@ -160,10 +160,12 @@ coeff <- tidy(lr_final) %>%
 ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
    geom_col(fill = 'skyblue') + coord_flip()+
   geom_text(aes(label = round(estimate,2)))+
-  xlab('Predictors')+
-  ylab('Estimate')+
   theme_minimal()+
-  theme(legend.position = "none")
+  theme(legend.position = "none") +  
+  labs(title = "Feature Estimate of LASSO Regression",
+       x = 'Predictors',
+       y = 'Estimate')
+#ggsave('image/lr_varplot.png')
 ```
 
 ## Random Forest 
@@ -238,8 +240,9 @@ last_rf_fit <- readRDS("Prediction_Env/last_rf_fit.rds")
 last_rf_fit %>% 
   extract_fit_parsnip() %>% 
   vip(num_features = 20,aesthetics = list(fill = "skyblue"))+ 
-  theme_minimal()
-
+  theme_minimal() +  
+  labs(title = "Feature Importance of Random Forest")
+#ggsave('image/rf_varplot.png')
 rf_auc = last_rf_fit %>% 
   collect_predictions() %>% 
   roc_auc(if_delay, .pred_0) %>%pull(.estimate)

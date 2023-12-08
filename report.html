@@ -359,6 +359,105 @@ be generalized based on the reults of the previous question. <br></p>
 </div>
 <div id="discussion" class="section level1">
 <h1>Discussion</h1>
+<p>The objective of the study was to assess the correlation between
+flight delay duration and various flight-related factors using multiple
+linear regression. Additionally, the research aimed to forecast flight
+delays by employing a machine learning framework.</p>
+<div id="variable-selection" class="section level2">
+<h2>Variable Selection</h2>
+<p>Lasso Regression and Random Forest models were employed on the 2013
+New York City flight dataset. The following plots give hints on the
+‘variable importance’. On the right is the LASSO Regression</p>
+<p><img src="image/lr_varplot.png" style="width:45.0%"
+alt="Caption for Image 1" /> <img src="image/rf_varplot.png"
+style="width:45.0%" alt="Caption for Image 2" /></p>
+</div>
+<div id="model-performance" class="section level2">
+<h2>Model Performance</h2>
+<p>2017 New York City flight dataset was used for model evaluation.
+Notably, the Random Forest model exhibited superior performance across a
+majority of evaluation metrics.</p>
+<table>
+<colgroup>
+<col width="11%" />
+<col width="7%" />
+<col width="7%" />
+<col width="9%" />
+<col width="9%" />
+<col width="6%" />
+<col width="4%" />
+<col width="3%" />
+<col width="6%" />
+<col width="9%" />
+<col width="12%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Sensitivity</th>
+<th>Specificity</th>
+<th>Pos Pred Value</th>
+<th>Neg Pred Value</th>
+<th>Precision</th>
+<th>Recall</th>
+<th>F1</th>
+<th>Prevalence</th>
+<th>Detection Rate</th>
+<th>Detection Prevalence</th>
+<th>Balanced Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Logistic</td>
+<td>0.880</td>
+<td>0.470</td>
+<td>0.759</td>
+<td>0.673</td>
+<td>0.759</td>
+<td>0.880</td>
+<td>0.815</td>
+<td>0.655</td>
+<td>0.577</td>
+<td>0.760</td>
+<td>0.675</td>
+</tr>
+<tr class="even">
+<td>RF</td>
+<td>0.971</td>
+<td>0.710</td>
+<td>0.864</td>
+<td>0.928</td>
+<td>0.864</td>
+<td>0.971</td>
+<td>0.915</td>
+<td>0.655</td>
+<td>0.637</td>
+<td>0.736</td>
+<td>0.841</td>
+</tr>
+</tbody>
+</table>
+<p>Random Forest might outperform Lasso Regression in predicting flight
+delays for several reasons:</p>
+<ul>
+<li><p>Handling Non-linearity: Flight delay prediction is likely
+influenced by a combination of linear and non-linear factors. RF, being
+a non-linear model, can handle complex relationships and interactions
+more effectively than LR, which assumes a linear relationship between
+the predictors and the response variable.</p></li>
+<li><p>Feature Importance: RF inherently assesses the importance of
+different features in making predictions. This feature importance can be
+beneficial in scenarios where certain variables play a more crucial role
+in determining outcomes, and RF can adapt to this by giving more weight
+to those features. LR, while performing feature selection by shrinking
+some coefficients to zero, might not capture non-linear relationships or
+account for intricate feature interactions as comprehensively.</p></li>
+<li><p>Robustness to Outliers: RF is generally more robust to outliers
+and noisy data compared to LR.</p></li>
+</ul>
+</div>
 </div>
 
 
