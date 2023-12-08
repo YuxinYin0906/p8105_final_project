@@ -32,7 +32,17 @@ For the purpose of the project, we will be answering the following questions: <b
 - Can our model be generalized based on the reults of the previous question. <br>
 
 
-## Data
+## Data Source
+
+In this project, we located several publicly available data sources shown as following: 
+
+* `nycflights13` from R library, which includes flight information and weather conditions in 2013
+*  The datasets concerning with flight and weather in 2017 can be accessed through this [link](https://github.com/jayleetx/nycflights/tree/master).
+
+Note: all relevant datasets for this study were contained in the folder `data`. 
+
+## Data Cleaning 
+
 
 
 ## Exploratory analysis
