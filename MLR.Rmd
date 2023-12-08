@@ -78,6 +78,17 @@ In response to this correlation finding, we conducted an assessment based on the
 
 # Stepwise Regression
 
+In the context of the linear model, we have taken several important preprocessing steps, including standardizing the variables, employing one-hot encoding to handle categorical variables, and excluding highly correlated pairs. These measures were implemented to enhance the stability and interpretability of the model.
+
+With a heightened level of confidence in the prepared dataset, we proceeded to conduct stepwise regression. This method systematically refines the model by iteratively selecting or removing variables based on criteria such as the Akaike Information Criterion (AIC). The goal was to precisely capture the relationships between flight delay time and various flight information parameters.
+
+By leveraging stepwise regression, we aimed to ensure that the final model includes the most relevant and significant predictors, thereby providing a streamlined and statistically robust representation of the intricate relationships within the data.
+
+## Variable Estimation
+
+The plot below unveils insights into the top 20 estimated values of the predictors. Strikingly, these top 20 predictors exclusively consist of destination dummy variables. Notably, only Daniel K. Inouye International Airport (HNL) stands out with negative estimates, implying that flights to HNL are less likely to experience delays—a delightful discovery. Perhaps both visitors and flight crews couldn't wait to join the beach
+
+
 ```{r AIC, include = FALSE}
 
 df_2013_mlr = df_2013_mlr |>
@@ -107,6 +118,45 @@ ggplot(coeff,
   theme(legend.position = "none") + theme_minimal()
 
 ```
+According to a [Air Travel Consumer Report](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf) relesd by the U.S. Department of Transportation in Dec, 2022 (due to limited resources, we failed to trace the rank from 2013), the top 10 U.S. Airports with the Most Delays are:
+
+1. Midway Airport, Chicago (MDW, 47% delayed)
+2. Stapleton Airport, Denver (DEN, 43%)
+3. Baltimore-Washington International (BWI, 42%)
+4. Love Field, Dallas (DAL, 42%)
+5. Seattle-Tacoma Airport (SEA, 38%)
+6. Harry Reid International, Las Vegas (LAS, 38%)
+7. Orlando International (MCO, 37%)
+8. Fort Lauderdale Airport (FLL, 37%)
+9. Newark Liberty International (EWR, 35%)
+10. Nashville International Airport (BNA, 32.9%)
+
+
+So, the funky thing is, the cool airports that made it to the top 20 in 2013 don't exactly jive with the list of the top 10 delay-prone airports. It's like they're dancing to different tunes! Why, you ask? Well, one possibility is that our 2013 dataset is a bit of a New York City party, and you know how NYC likes to do things its own way. It's like the dataset is saying, "I'm from NYC, and I do delays differently!"
+
+Or maybe, some airports might have gotten their act together in the past 10 years.
+
+So, in the grand scheme of things, our dataset from 2013 might be a bit like a vintage record – charmingly outdated, but still groovy. And those airports with the top delays? Well, they could be the cool kids who've learned a thing or two about punctuality since then. Life's a journey, and apparently, so are our flights! 
+
+## Model Summary
+
+
+The extensive table presented below provides estimates and confidence intervals (CIs) for each variable incorporated into the stepwise model. Although the table may initially appear lengthy and somewhat lacking in informativeness, a closer examination reveals an adjusted $R^2$ value of only 0.110. This modest value suggests that the linear model employed may not be sufficiently adept at elucidating the potential for flight delays.
+
+
+<style>
+  table {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: center;
+    font-weight: bold;
+  }
+</style>
+
 <table style="text-align:center"><caption><strong>Regression Results</strong></caption>
 <tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td><em>Dependent variable:</em></td></tr>
 <tr><td></td><td colspan="1" style="border-bottom: 1px solid black"></td></tr>

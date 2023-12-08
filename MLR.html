@@ -393,6 +393,30 @@ multicollinearity issues.</p>
 </div>
 <div id="stepwise-regression" class="section level1">
 <h1>Stepwise Regression</h1>
+<p>In the context of the linear model, we have taken several important
+preprocessing steps, including standardizing the variables, employing
+one-hot encoding to handle categorical variables, and excluding highly
+correlated pairs. These measures were implemented to enhance the
+stability and interpretability of the model.</p>
+<p>With a heightened level of confidence in the prepared dataset, we
+proceeded to conduct stepwise regression. This method systematically
+refines the model by iteratively selecting or removing variables based
+on criteria such as the Akaike Information Criterion (AIC). The goal was
+to precisely capture the relationships between flight delay time and
+various flight information parameters.</p>
+<p>By leveraging stepwise regression, we aimed to ensure that the final
+model includes the most relevant and significant predictors, thereby
+providing a streamlined and statistically robust representation of the
+intricate relationships within the data.</p>
+<div id="variable-estimation" class="section level2">
+<h2>Variable Estimation</h2>
+<p>The plot below unveils insights into the top 20 estimated values of
+the predictors. Strikingly, these top 20 predictors exclusively consist
+of destination dummy variables. Notably, only Daniel K. Inouye
+International Airport (HNL) stands out with negative estimates, implying
+that flights to HNL are less likely to experience delays—a delightful
+discovery. Perhaps both visitors and flight crews couldn’t wait to join
+the beach</p>
 <pre class="r"><code>fit_AIC = lm(formula = arr_delay ~ origin + hour + carrier + dest + air_time + minute + 
     wind_dir + pressure + visib + arrival_date,
     data = df_2013_mlr)
@@ -411,7 +435,61 @@ ggplot(coeff,
   xlab(&#39;Predictors&#39;)+
   ylab(&#39;Estimate&#39;)+
   theme(legend.position = &quot;none&quot;) + theme_minimal()</code></pre>
-<img src="MLR_files/figure-html/estimate%20plot-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="MLR_files/figure-html/estimate%20plot-1.png" width="672" style="display: block; margin: auto;" />
+According to a <a
+href="chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf">Air
+Travel Consumer Report</a> relesd by the U.S. Department of
+Transportation in Dec, 2022 (due to limited resources, we failed to
+trace the rank from 2013), the top 10 U.S. Airports with the Most Delays
+are:</p>
+<ol style="list-style-type: decimal">
+<li>Midway Airport, Chicago (MDW, 47% delayed)</li>
+<li>Stapleton Airport, Denver (DEN, 43%)</li>
+<li>Baltimore-Washington International (BWI, 42%)</li>
+<li>Love Field, Dallas (DAL, 42%)</li>
+<li>Seattle-Tacoma Airport (SEA, 38%)</li>
+<li>Harry Reid International, Las Vegas (LAS, 38%)</li>
+<li>Orlando International (MCO, 37%)</li>
+<li>Fort Lauderdale Airport (FLL, 37%)</li>
+<li>Newark Liberty International (EWR, 35%)</li>
+<li>Nashville International Airport (BNA, 32.9%)</li>
+</ol>
+<p>So, the funky thing is, the cool airports that made it to the top 20
+in 2013 don’t exactly jive with the list of the top 10 delay-prone
+airports. It’s like they’re dancing to different tunes! Why, you ask?
+Well, one possibility is that our 2013 dataset is a bit of a New York
+City party, and you know how NYC likes to do things its own way. It’s
+like the dataset is saying, “I’m from NYC, and I do delays
+differently!”</p>
+<p>Or maybe, some airports might have gotten their act together in the
+past 10 years.</p>
+<p>So, in the grand scheme of things, our dataset from 2013 might be a
+bit like a vintage record – charmingly outdated, but still groovy. And
+those airports with the top delays? Well, they could be the cool kids
+who’ve learned a thing or two about punctuality since then. Life’s a
+journey, and apparently, so are our flights!</p>
+</div>
+<div id="model-summary" class="section level2">
+<h2>Model Summary</h2>
+<p>The extensive table presented below provides estimates and confidence
+intervals (CIs) for each variable incorporated into the stepwise model.
+Although the table may initially appear lengthy and somewhat lacking in
+informativeness, a closer examination reveals an adjusted <span
+class="math inline">\(R^2\)</span> value of only 0.110. This modest
+value suggests that the linear model employed may not be sufficiently
+adept at elucidating the potential for flight delays.</p>
+<style>
+  table {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: center;
+    font-weight: bold;
+  }
+</style>
 <table style="text-align:center">
 <caption>
 <strong>Regression Results</strong>
@@ -2875,6 +2953,7 @@ F Statistic
 </td>
 </tr>
 </table>
+</div>
 </div>
 
 
