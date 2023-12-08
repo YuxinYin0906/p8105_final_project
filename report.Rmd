@@ -43,10 +43,24 @@ The objective of the study was to assess the correlation between flight delay du
 
 ## Variable Selection
 
-Lasso Regression and Random Forest models were employed on the 2013 New York City flight dataset. The following plots give hints on the 'variable importance'. On the right is the LASSO Regression   
+Lasso Regression and Random Forest models were applied to analyze the 2013 New York City flight dataset. The accompanying plots shed light on the 'variable importance.' On the right side, the top 20 absolute value estimates of Lasso Regression reveal a predominant presence of destination dummy variables. In contrast, the Random Forest plot on the left tells a distinct tale. Continuous variables such as airtime, pressure, distance, etc., play a more significant role in predicting delays compared to other categorical variables.
 
 ![Caption for Image 1](image/lr_varplot.png){width=45%}\hfill
 ![Caption for Image 2](image/rf_varplot.png){width=45%}
+
+The difference in 'variable importance' between Lasso Regression and Random Forest models can be attributed to the inherent characteristics and mechanisms of each algorithm:
+
+Lasso Regression (LR):
+
+* Preference for Categorical Variables: LR performs variable selection by shrinking the coefficients of less influential variables to exactly zero. It tends to favor sparse solutions and is particularly effective when dealing with high-dimensional data.
+
+Random Forest (RF):
+
+* Ensemble of Decision Trees: RF builds an ensemble of decision trees, each trained on a random subset of the data and features. This ensemble approach allows the model to capture complex interactions and non-linear relationships.
+
+* Handling Mixed Data Types: Unlike LR, RF is well-suited for handling both categorical and continuous variables simultaneously. It can effectively evaluate the importance of features with various data types.
+
+* Robust to Collinearity: RF is less sensitive to multicollinearity, which means it can handle correlated features without necessarily discarding one of them. This can be advantageous when dealing with a mix of categorical and continuous variables.
 
 ## Model Performance
 
