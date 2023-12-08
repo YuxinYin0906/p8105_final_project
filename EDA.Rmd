@@ -24,6 +24,7 @@ library(plotly)
 library(corrplot)
 library(ggpubr)
 library(viridisLite)
+library(patchwork)
 
 knitr::opts_chunk$set(
     echo = TRUE,
@@ -130,7 +131,7 @@ top6_dest =
        y = "Arrival Delay (minutes)")
 
 
-dd_hist + orgin_delay / top6_dest
+dd_hist | origin_delay / top6_dest
 
 ```
 ```{r}
@@ -142,7 +143,8 @@ df_2013 |>
             ) |>
   knitr::kable(
     digits = 3,
-    col.names = c("Min Delay","Average Delay", "Median Delay", "Max Delay")
+    col.names = c("Min Delay Time (Minutes)","Average Delay Time (Minutes)", "Median Delay Time (Minutes)", 
+                  "Max Delay Time (Minutes)")
     )
 ```
 
@@ -218,10 +220,11 @@ df_2013 |>
       y = "Average of Arrival Delay Time (Minutes)") 
 
 ```
+
 Based on the graph, it appeared that the incremental of visibility did not linearly correlate with the reduction in the number of delays. In the highest visibility 10, we perceived the highest number of delays. There was no major difference in the number of delays in visibility ranging from 0 to 9. However, we observed that visibility negatively correlated with average delay time in minutes. 
 
 ### Wind
-```{r plot_weather_wind, warning = FALSE, message = FALSE, include=FALSE}
+```{r plot_weather_wind, warning = FALSE, message = FALSE,  fig.height=7}
 
 # Average Wind Direction against average arr_delay by date
 wind_dir_delay_date = 
@@ -252,14 +255,10 @@ wind_speed_delay_date =
        y = "Avg arr_delay")
 
 
-```
-
-```{r plot_wind, warning = FALSE, message = FALSE}
-wind_dir_delay_date
-wind_speed_delay_date
-wind_gust_delay_date
+(wind_dir_delay_date | wind_speed_delay_date) / wind_gust_delay_date
 
 ```
+
 
 
 ## Arrival Delay & Carriers, Seasonal and Temporal Factors
@@ -290,9 +289,10 @@ month_plot = df_2013 |>
         x = "Month",
         y = "Total Number of Delays")
 
-carrier_plot + month_plot
+carrier_plot | month_plot
 
 ```
+
 The carrier `EV` was shown to have the highest number of delays, followed by carrier `B6`. The number of delays for carrier `HA` was found to be the lowest across all carriers. Months such as March and April appeared to have the relatively high number of delays, and the lowest total number of delays occurred in September. 
 
 
@@ -331,7 +331,7 @@ weekday_plot_delay = df_2013_weekday |>
         y = "Average Time of Arrival Delays (minutes)")
 
 
-weekday_plot / weekday_plot_delay
+weekday_plot /weekday_plot_delay
   
   
 ```
@@ -378,6 +378,7 @@ part_day_plot_delay = df_2013 |>
 part_day_plot / part_day_plot_delay
   
 ```
+
 Furthermore, we further visualized the changes of number of delays and daytime divided into `Late Night`, `Morning`, `Afternoon`, `Evening`. The number of arrival delays was increased from time during laye night to afternoon, dropping during the evening. We found a largest number of delays during afternoon, with the average time delay of 9 minutes. 
 
 ## Insights from Visualization
