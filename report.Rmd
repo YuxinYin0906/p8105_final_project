@@ -51,7 +51,7 @@ Files and libraries required at this stage:
 * `flights_2017.rda`
 * `weather_2017.rda`
 
-The weather condition and flight information would be merged based on the `origin`, `year`, `month`, `day` and `hour`. As we perceived that large portion of values (>0.9) in some columns  were missing in `2017 weather dataset`, we removed these columns on both 2013 and 2017 datasets. Lastly, we remove the records with na values. 
+The weather condition and flight information would be merged based on the `origin`, `year`, `month`, `day` and `hour`. As we perceived that large portion of values (>0.9) in some columns  were missing in `2017 weather dataset`, we removed these columns on both 2013 and 2017 datasets. Lastly, we removed the records containing any NA values. . 
 
 ```{r, message=FALSE}
 library(tidyverse)
