@@ -466,7 +466,8 @@ the <code>origin</code>, <code>year</code>, <code>month</code>,
 <code>day</code> and <code>hour</code>. As we perceived that large
 portion of values (&gt;0.9) in some columns were missing in
 <code>2017 weather dataset</code>, we removed these columns on both 2013
-and 2017 datasets. Lastly, we remove the records with na values.</p>
+and 2017 datasets. Lastly, we removed the records containing any NA
+values.</p>
 <pre class="r"><code>library(tidyverse)
 library(dplyr)
 library(&quot;nycflights13&quot;)
