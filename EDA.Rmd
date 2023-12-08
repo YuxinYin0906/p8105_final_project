@@ -261,7 +261,7 @@ wind_speed_delay_date =
 
 
 
-## Arrival Delay & Carriers, Seasonal and Temporal Factors
+## Arrival Delay & Carriers, Temporal Factors
 
 ```{r, fig.width=10}
 

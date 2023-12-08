@@ -348,10 +348,10 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="data_preprocess.html">Data Cleaning</a>
+      <a href="Prediction_v2.html">Prediction</a>
     </li>
     <li>
-      <a href="data_preprocess.html">Data Souce</a>
+      <a href="MLR.html">MLR</a>
     </li>
     <li>
       <a href="EDA.html">Exploratory Data Analysis</a>
@@ -698,9 +698,9 @@ wind_speed_delay_date =
 <p><img src="EDA_files/figure-html/plot_weather_wind-1.png" width="90%" /></p>
 </div>
 </div>
-<div id="arrival-delay-carriers-seasonal-and-temporal-factors"
+<div id="arrival-delay-carriers-temporal-factors"
 class="section level2">
-<h2>Arrival Delay &amp; Carriers, Seasonal and Temporal Factors</h2>
+<h2>Arrival Delay &amp; Carriers, Temporal Factors</h2>
 <pre class="r"><code>carrier_plot = df_2013 |&gt; 
   group_by(carrier) |&gt; 
   mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
