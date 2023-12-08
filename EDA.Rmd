@@ -13,6 +13,7 @@ library(dplyr)
 library(cowplot)
 library(gridExtra)
 library(RColorBrewer)
+library(plotly)
 
 knitr::opts_chunk$set(
     echo = TRUE,
@@ -44,7 +45,28 @@ df_2017 =
 
 # Convert month to factor with levels in ascending order and labels as month abbreviations
 df_2013$month <- factor(df_2013$month, levels = 1:12, labels = month.abb[1:12])
+
+df_2013 <- df_2013 %>%
+  mutate(date = paste(month, day, sep = "_"))
+
 ```
+
+```{r agg_date}
+average_delay_by_date <- df_2013 %>%
+  # group_by(date) %>%
+  group_by(month, date) %>%
+  summarise(
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    avg_precip = mean(precip, na.rm = TRUE),
+    avg_wind_dir = mean(wind_dir, na.rm = TRUE),
+    avg_wind_speed = mean(wind_speed, na.rm = TRUE),
+    avg_wind_gust = mean(wind_gust, na.rm = TRUE),
+    avg_pressure = mean(pressure, na.rm = TRUE),
+    avg_visib = mean(visib, na.rm = TRUE)
+    )
+
+```
+
 
 
 ### Data set description
@@ -149,6 +171,21 @@ precip_delay_month =
 
 ```
 
+```{r precip_delay_date}
+precip_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_precip, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3, alpha = .6) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  labs(title = "Scatter Plot of Precipitation against Arrival Delay by date",
+       x = "Precipitation (inches)",
+       y = "Arrival Delay (minutes)")
+
+precip_delay_date
+
+
+```
+
+
 
 ```{r show_precip}
 
@@ -161,6 +198,7 @@ summary(df_2013$precip)
 precip_line_bar
 precip_delay
 precip_delay_month
+# precip_delay_date
 
 ```
 
@@ -198,6 +236,22 @@ pressure_delay_month =
        y = "Avg Arrival Delay (minutes)")
 
 ```
+
+
+```{r pressure_date}
+# Average pressure against average arr_delay by month
+pressure_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_pressure, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  labs(title = "Scatter Plot of Average Pressure against Arrival Delay by Date",
+       x = "Avg Pressure by Date",
+       y = "Avg Arrival Delay (minutes)")
+
+pressure_delay_date
+
+```
+
 
 
 ```{r show_pressure}
@@ -244,6 +298,20 @@ visib_delay_month =
 
 ```
 
+```{r visib_date}
+# Average Visibility against average arr_delay by date
+visib_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_visib, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  labs(title = "Scatter Plot of Average Visibility against Arrival Delay by Date",
+       x = "Avg Visibility by Date",
+       y = "Avg Arrival Delay (minutes)")
+
+
+visib_delay_date
+```
+
 
 ```{r show_visib}
 summary(df_2013$visib)
@@ -288,6 +356,20 @@ wind_dir_delay_month =
 
 ```
 
+```{r wind_dir_date}
+# Average Wind Direction against average arr_delay by date
+wind_dir_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  labs(title = "Scatter Plot of Average Wind Direction against Arrival Delay by Date",
+       x = "Avg Daily Wind Direction",
+       y = "Avg Arrival Delay (minutes)")
+
+wind_dir_delay_date
+```
+
+
 ```{r show_wind_dir}
 
 summary(df_2013$wind_dir)
@@ -329,6 +411,20 @@ wind_speed_delay_month =
        x = "Avg Monthly Wind Speed",
        y = "Avg Arrival Delay (minutes)")
 
+```
+
+
+```{r wind_speed_date}
+# Average wind_speed against average arr_delay by date
+wind_speed_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  labs(title = "Scatter Plot of Average Wind Speed against Arrival Delay by Date",
+       x = "Avg Daily Wind Speed",
+       y = "Avg Arrival Delay (minutes)")
+
+wind_speed_delay_date
 ```
 
 
@@ -376,6 +472,20 @@ wind_gust_delay_month =
 
 ```
 
+```{r wind_gust_date}
+# Average wind_gust against average arr_delay by date
+wind_gust_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  labs(title = "Scatter Plot of Average Wind Gust against Arrival Delay by Date",
+       x = "Avg Daily Wind Gust",
+       y = "Avg Arrival Delay (minutes)")
+
+wind_gust_delay_date
+```
+
+
 ```{r show_wind_gust}
 
 summary(df_2013$wind_gust)
@@ -387,6 +497,23 @@ wind_gust_delay_month
 ```
 
 
+## Weather Variables
+```{r plot_weather}
+
+combined_weather_1 <- 
+  grid.arrange(
+    pressure_delay_date, 
+    wind_dir_delay_date, 
+    wind_gust_delay_date, 
+    wind_speed_delay_date, 
+    ncol = 2,
+    layout_matrix = matrix(c(1, 2, 3, 4), ncol = 2, byrow = TRUE),
+    heights = c(1, 1), widths = c(1, 1),
+    top = "Weather Variables")
+
+combined_weather_1
+
+```
 
 
 # Flights
@@ -474,8 +601,49 @@ df_2013 %>%
   summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
   arrange(desc(mean_ad))
 
+# Create a summary table with average arrival delay for each destination
+avg_arr_delay <- df_2013 %>%
+  group_by(dest) %>%
+  summarise(avg_arr_delay = mean(arr_delay, na.rm = TRUE))
+
 
 ```
+
+```{r}
+# Create an interactive map using plotly
+fig <- plot_ly(
+  data = avg_arr_delay,
+  type = 'scattergeo',
+  locationmode = 'USA-states',
+  locations = ~dest,
+  z = ~avg_arr_delay,
+  text = ~paste('Destination: ', dest, '<br>Avg Arrival Delay: ', round(avg_arr_delay, 2)),
+  color = ~avg_arr_delay,
+  colorscale = 'Viridis',
+  marker = list(line = list(width = 0.5, color = 'white'))
+) %>%
+  layout(
+    geo = list(
+      scope = 'usa',
+      projection = list(type = 'albers usa'),
+      showland = TRUE,
+      landcolor = 'rgb(217, 217, 217)',
+      subunitwidth = 1,
+      countrywidth = 1,
+      subunitcolor = 'rgb(255,255,255)',
+      countrycolor = 'rgb(255,255,255)'
+    ),
+    title = 'Average Arrival Delay by Destination',
+    xaxis = list(title = 'Destination'),
+    yaxis = list(title = 'Average Arrival Delay')
+  )
+
+# Show the interactive map
+fig
+
+
+```
+
 
 ```{r plot_dest_delay}
 # Calculate average arrival delay by destination
