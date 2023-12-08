@@ -1,0 +1,510 @@
+---
+title: "Mutiple Linear Regression"
+author: "Yumeng Qi & Jiying Wang"
+output: 
+  html_document:
+    toc: true
+    code_folding: hide
+    toc_float: true
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      fig.align = 'center')
+
+library(tidyverse)
+library(tidymodels)
+library(MASS)
+library(corrplot)
+#library(stargazer)
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+``` 
+
+In this section, our objective is to elucidate the connection between flight-related information and flight delays within the framework of linear regression. Adhering to the model's assumptions, our initial step involves computing pairwise correlation coefficients to mitigate the impact of multicollinearity. Pairs exhibiting coefficients exceeding 0.8 are deemed highly correlated, signifying the potential to introduce distortion into the model. Subsequently, we conducted stepwise regression selection, minimizing the Akaike Information Criterion (AIC). This stepwise approach assists in refining the model by iteratively adding or removing variables, ensuring a more parsimonious and statistically robust representation of the relationship between the variables and flight delays.
+
+# Correlation Coefficient
+
+Upon examining the plot, we observed two pairs with correlation coefficients surpassing 0.8: namely, wind_gust and wind_speed, and air_time and distance. The presence of highly correlated pairs suggests a potential for one variable to be essentially substituted by another in the model, which leads to the problem of multicollinearity. In the presence of multicollinearity, the estimates of individual regression coefficients become sensitive to small changes in the data. This sensitivity can lead to coefficients with large standard errors and reduced statistical significance. Also, it inflates the variance of the regression coefficients, making them less precise. This increased variance can result in wider confidence intervals, making it more challenging to draw reliable conclusions about the effects of individual predictors.
+ 
+```{r load_data, include = FALSE}
+df_2013_raw =  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
+df_2017_raw = read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
+
+dest_int =  intersect(unique(df_2017_raw$dest),unique(df_2013_raw$dest))
+carrier_int =  intersect(unique(df_2017_raw$carrier),unique(df_2013_raw$carrier))
+
+
+df_2013_mlr = df_2013_raw |>
+ mutate(
+         arrival_date = paste(year,"-",month,"-",day, sep = ""),
+         arrival_date = date(arrival_date),
+         hour = if_else(hour >=5 & hour < 12,'Morning',
+                        if_else(hour >=12 & hour < 17,'Afternoon',
+                                if_else(hour >=17 & hour <= 21,'Evening','Night')))
+        # hour = factor(flight,ordered = TRUE)
+         ) |>
+  filter(dest %in% dest_int,
+         carrier %in% carrier_int)|>
+  dplyr::select(-tailnum,  -year, -month, -day, -flight) 
+```
+
+```{r scale}
+df_2013_mlr = df_2013_mlr |>
+  mutate_if(is.numeric, scale) 
+
+
+M = cor(df_2013_mlr |> select_if(is.numeric))
+corrplot(M, order = 'AOE', type = 'upper', tl.pos = 'n', method = "number")
+corrplot(M, add = TRUE, type = 'lower', method = 'ellipse', order = 'AOE',
+         diag = FALSE, tl.pos = 'l', cl.pos = 'n',tl.col='black',tl.cex = 0.8)
+#corrplot(cor(df_2013_mlr |> select_if(is.numeric)),  method = "number")
+# delete distance and wind_speed for less unqiue value
+```
+
+In response to this correlation finding, we conducted an assessment based on the unique values of each variable within these pairs. The rationale was to retain the variable with a greater number of unique values, indicative of a broader range of information. Consequently, we decided to eliminate wind_speed and distance from the analysis, aiming to enhance the model's stability and interpretability by resolving multicollinearity issues.
+
+|highly correlated variables  | wind_gust | wind_speed | air_time | distance |
+|---|-----------|------------|----------|----------|
+|unique cnt| `r length(unique(df_2013_mlr$wind_gust))`| `r length(unique(df_2013_mlr$wind_speed))`| `r length(unique(df_2013_mlr$air_time))`|`r length(unique(df_2013_mlr$distance))`|
+
+# Stepwise Regression
+
+In the context of the linear model, we have taken several important preprocessing steps, including standardizing the variables, employing one-hot encoding to handle categorical variables, and excluding highly correlated pairs. These measures were implemented to enhance the stability and interpretability of the model.
+
+With a heightened level of confidence in the prepared dataset, we proceeded to conduct stepwise regression. This method systematically refines the model by iteratively selecting or removing variables based on criteria such as the Akaike Information Criterion (AIC). The goal was to precisely capture the relationships between flight delay time and various flight information parameters.
+
+By leveraging stepwise regression, we aimed to ensure that the final model includes the most relevant and significant predictors, thereby providing a streamlined and statistically robust representation of the intricate relationships within the data.
+
+## Variable Estimation
+
+The plot below unveils insights into the top 20 estimated values of the predictors. Strikingly, these top 20 predictors exclusively consist of destination dummy variables. Notably, only Daniel K. Inouye International Airport (HNL) stands out with negative estimates, implying that flights to HNL are less likely to experience delays—a delightful discovery. Perhaps both visitors and flight crews couldn't wait to join the beach
+
+
+```{r AIC, include = FALSE}
+
+df_2013_mlr = df_2013_mlr |>
+ dplyr::select(-wind_speed,-distance)
+#fit = lm(arr_delay ~ . , data = df_2013_mlr)
+#stepAIC(fit, direction="both")
+```
+
+```{r estimate plot}
+fit_AIC = lm(formula = arr_delay ~ origin + hour + carrier + dest + air_time + minute + 
+    wind_dir + pressure + visib + arrival_date,
+    data = df_2013_mlr)
+#summary(fit_AIC)
+
+#stargazer(fit_AIC, title="Regression Results",type='html', single.row = FALSE,  ci=TRUE)
+
+coeff <- tidy(fit_AIC) %>% 
+  arrange(desc(abs(estimate))) %>%
+  filter(term != '(Intercept)') %>% 
+  slice(1:20)
+ggplot(coeff, 
+       aes(x = reorder(term,estimate), y = estimate)) + 
+  geom_col(fill = 'skyblue') + coord_flip()+
+  geom_text(aes(label = round(estimate,2)))+
+  xlab('Predictors')+
+  ylab('Estimate')+
+  theme(legend.position = "none") + theme_minimal()
+
+```
+According to a [Air Travel Consumer Report](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.transportation.gov/sites/dot.gov/files/2023-04/February%202023%20ATCR_Revised.pdf) relesd by the U.S. Department of Transportation in Dec, 2022 (due to limited resources, we failed to trace the rank from 2013), the top 10 U.S. Airports with the Most Delays are:
+
+1. Midway Airport, Chicago (MDW, 47% delayed)
+2. Stapleton Airport, Denver (DEN, 43%)
+3. Baltimore-Washington International (BWI, 42%)
+4. Love Field, Dallas (DAL, 42%)
+5. Seattle-Tacoma Airport (SEA, 38%)
+6. Harry Reid International, Las Vegas (LAS, 38%)
+7. Orlando International (MCO, 37%)
+8. Fort Lauderdale Airport (FLL, 37%)
+9. Newark Liberty International (EWR, 35%)
+10. Nashville International Airport (BNA, 32.9%)
+
+
+So, the funky thing is, the cool airports that made it to the top 20 in 2013 don't exactly jive with the list of the top 10 delay-prone airports. It's like they're dancing to different tunes! Why, you ask? Well, one possibility is that our 2013 dataset is a bit of a New York City party, and you know how NYC likes to do things its own way. It's like the dataset is saying, "I'm from NYC, and I do delays differently!"
+
+Or maybe, some airports might have gotten their act together in the past 10 years.
+
+So, in the grand scheme of things, our dataset from 2013 might be a bit like a vintage record – charmingly outdated, but still groovy. And those airports with the top delays? Well, they could be the cool kids who've learned a thing or two about punctuality since then. Life's a journey, and apparently, so are our flights! 
+
+## Model Summary
+
+
+The extensive table presented below provides estimates and confidence intervals (CIs) for each variable incorporated into the stepwise model. Although the table may initially appear lengthy and somewhat lacking in informativeness, a closer examination reveals an adjusted $R^2$ value of only 0.110. This modest value suggests that the linear model employed may not be sufficiently adept at elucidating the potential for flight delays.
+
+
+<style>
+  table {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: center;
+    font-weight: bold;
+  }
+</style>
+
+<table style="text-align:center"><caption><strong>Regression Results</strong></caption>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td><em>Dependent variable:</em></td></tr>
+<tr><td></td><td colspan="1" style="border-bottom: 1px solid black"></td></tr>
+<tr><td style="text-align:left"></td><td>arr_delay</td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">originJFK</td><td>-0.108<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.138, -0.079)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">originLGA</td><td>-0.065<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.089, -0.040)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">hourEvening</td><td>0.268<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.247, 0.288)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">hourMorning</td><td>-0.173<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.193, -0.154)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">hourNight</td><td>0.181<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.083, 0.278)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierAS</td><td>-0.278<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.467, -0.090)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierB6</td><td>0.162<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.122, 0.201)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierDL</td><td>-0.048<sup>**</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.086, -0.010)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierEV</td><td>0.220<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.170, 0.271)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierF9</td><td>0.282<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.135, 0.429)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierHA</td><td>-0.343<sup>**</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.624, -0.061)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierOO</td><td>-0.074</td></tr>
+<tr><td style="text-align:left"></td><td>(-0.904, 0.755)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierUA</td><td>0.003</td></tr>
+<tr><td style="text-align:left"></td><td>(-0.035, 0.040)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierVX</td><td>-0.026</td></tr>
+<tr><td style="text-align:left"></td><td>(-0.096, 0.044)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">carrierWN</td><td>0.077<sup>**</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.014, 0.140)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destACK</td><td>3.683<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.140, 4.225)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destALB</td><td>3.929<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.468, 4.390)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destATL</td><td>2.670<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.261, 3.078)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destAUS</td><td>0.743<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.339, 1.148)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destAVL</td><td>2.923<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.438, 3.409)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBDL</td><td>3.931<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.467, 4.394)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBGR</td><td>3.361<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.894, 3.828)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBHM</td><td>2.327<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.855, 2.798)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBNA</td><td>2.545<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.133, 2.957)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBOS</td><td>3.749<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.327, 4.171)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBQN</td><td>1.133<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.698, 1.567)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBTV</td><td>3.702<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.275, 4.128)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBUF</td><td>3.574<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.152, 3.996)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBUR</td><td>-1.528<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.983, -1.074)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destBWI</td><td>3.959<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.510, 4.408)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destCAE</td><td>2.971<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.423, 3.518)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destCHO</td><td>3.354<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.718, 3.990)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destCHS</td><td>2.870<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.453, 3.287)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destCLE</td><td>3.305<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.884, 3.726)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destCLT</td><td>3.230<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.813, 3.648)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destCMH</td><td>3.206<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.769, 3.644)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destCVG</td><td>2.985<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.566, 3.403)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destDAY</td><td>3.007<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.581, 3.432)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destDCA</td><td>3.945<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.514, 4.375)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destDEN</td><td>0.669<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.271, 1.068)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destDFW</td><td>0.984<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.583, 1.384)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destDSM</td><td>2.036<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.577, 2.494)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destDTW</td><td>3.026<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.612, 3.440)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destEGE</td><td>-0.046</td></tr>
+<tr><td style="text-align:left"></td><td>(-0.510, 0.418)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destFLL</td><td>1.949<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.547, 2.351)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destGRR</td><td>3.050<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.617, 3.482)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destGSO</td><td>3.290<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.865, 3.715)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destGSP</td><td>3.139<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.704, 3.574)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destHNL</td><td>-6.049<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-6.538, -5.560)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destHOU</td><td>0.931<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.524, 1.339)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destIAD</td><td>3.824<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.401, 4.248)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destIAH</td><td>1.105<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.705, 1.504)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destIND</td><td>2.815<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.392, 3.239)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destJAC</td><td>0.478</td></tr>
+<tr><td style="text-align:left"></td><td>(-0.661, 1.616)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destJAX</td><td>2.488<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.074, 2.901)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destLAS</td><td>-0.820<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.220, -0.419)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destLAX</td><td>-1.245<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.645, -0.845)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destLGB</td><td>-1.461<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.887, -1.034)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMCI</td><td>1.753<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.341, 2.164)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMCO</td><td>2.183<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.779, 2.587)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMDW</td><td>2.650<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.236, 3.064)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMEM</td><td>2.090<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.678, 2.502)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMHT</td><td>3.877<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.436, 4.319)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMIA</td><td>1.868<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.465, 2.271)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMKE</td><td>2.663<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.248, 3.078)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMSN</td><td>2.473<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.045, 2.900)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMSP</td><td>1.956<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.551, 2.362)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMSY</td><td>1.533<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.128, 1.938)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMVY</td><td>3.566<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.006, 4.126)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destMYR</td><td>2.806<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.065, 3.548)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destOAK</td><td>-1.862<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-2.329, -1.395)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destOMA</td><td>1.706<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.276, 2.136)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destORD</td><td>2.474<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.066, 2.881)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destORF</td><td>3.645<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.208, 4.082)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPBI</td><td>2.058<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.654, 2.462)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPDX</td><td>-1.404<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.822, -0.987)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPHL</td><td>4.422<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.643, 5.201)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPHX</td><td>-0.646<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.049, -0.242)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPIT</td><td>3.528<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.100, 3.956)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPSE</td><td>0.689<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.193, 1.184)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPSP</td><td>-1.198<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-2.054, -0.342)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPVD</td><td>4.059<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.595, 4.522)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destPWM</td><td>3.846<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.419, 4.273)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destRDU</td><td>3.435<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.013, 3.857)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destRIC</td><td>3.699<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.272, 4.126)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destROC</td><td>3.696<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.269, 4.122)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destRSW</td><td>1.741<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.336, 2.146)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSAN</td><td>-1.197<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.602, -0.791)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSAT</td><td>0.486<sup>**</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.057, 0.915)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSAV</td><td>2.835<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.407, 3.262)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSBN</td><td>2.739<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.368, 4.109)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSDF</td><td>2.892<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.460, 3.324)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSEA</td><td>-1.262<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.668, -0.856)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSFO</td><td>-1.461<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.863, -1.059)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSJC</td><td>-1.740<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-2.207, -1.274)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSJU</td><td>1.086<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.684, 1.488)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSLC</td><td>-0.309</td></tr>
+<tr><td style="text-align:left"></td><td>(-0.713, 0.096)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSMF</td><td>-1.431<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.926, -0.937)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSNA</td><td>-1.534<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-1.957, -1.112)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSRQ</td><td>1.880<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.463, 2.296)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSTL</td><td>2.234<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.826, 2.642)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSTT</td><td>1.145<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.696, 1.594)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destSYR</td><td>3.804<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(3.370, 4.238)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destTPA</td><td>2.082<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.677, 2.486)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destTYS</td><td>3.350<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(2.860, 3.840)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">destXNA</td><td>1.775<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.272, 2.278)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">air_time</td><td>1.621<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(1.558, 1.684)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">minute</td><td>0.010<sup>**</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.002, 0.018)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">wind_dir</td><td>-0.081<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.089, -0.073)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">pressure</td><td>-0.072<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.080, -0.064)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">visib</td><td>-0.106<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-0.114, -0.099)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">arrival_date</td><td>0.0001</td></tr>
+<tr><td style="text-align:left"></td><td>(-0.00002, 0.0001)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">Constant</td><td>-2.614<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(-3.880, -1.349)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Observations</td><td>57,575</td></tr>
+<tr><td style="text-align:left">R<sup>2</sup></td><td>0.112</td></tr>
+<tr><td style="text-align:left">Adjusted R<sup>2</sup></td><td>0.110</td></tr>
+<tr><td style="text-align:left">Residual Std. Error</td><td>0.943 (df = 57462)</td></tr>
+<tr><td style="text-align:left">F Statistic</td><td>64.673<sup>***</sup> (df = 112; 57462)</td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"><em>Note:</em></td><td style="text-align:right"><sup>*</sup>p<0.1; <sup>**</sup>p<0.05; <sup>***</sup>p<0.01</td></tr>
+</table>

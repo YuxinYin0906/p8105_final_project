@@ -1,5 +1,9 @@
 ---
 title: "Data Preprocessing"
+output: 
+  html_document:
+    code_folding: hide
+    toc_float: true
 ---
 
 
@@ -30,14 +34,14 @@ weather_2017 = weather |>
 ```
 
 
-## Examine Missingness
+## Examine Missingness: remove columns with large amount of missing values 
 ```{r}
 
 missing_values = tibble(
   column_names = colnames(weather_2017),
   missing_percentage = colSums(is.na(weather_2017)) / nrow(weather_2017)
-)
-
+) 
+  
 print(missing_values)
 
 
@@ -104,8 +108,8 @@ merge_data_2017 = merge(flights_2017_clean, weather_2017_clean, by =c("origin",
 
 ## Export to csv
 ```{r}
-write.csv(merge_data_2013, "data/merge_data_2013.csv", row.names = TRUE)
-write.csv(merge_data_2017, "data/merge_data_2017.csv", row.names = TRUE)
+write.csv(merge_data_2013, "data/merge_data_2013.csv", row.names = FALSE)
+write.csv(merge_data_2017, "data/merge_data_2017.csv", row.names = FALSE)
 ```
 
 

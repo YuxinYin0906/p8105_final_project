@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Yumeng Qi &amp; Jiying Wang" />
+
+
+<title>Prediction Flights Delay</title>
+
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    About
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Us</li>
+  </ul>
+</li>
+<li>
+  <a href="report.html">Final Report</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="data_preprocess.html">Data Cleaning</a>
+    </li>
+    <li>
+      <a href="data_preprocess.html">Data Souce</a>
+    </li>
+    <li>
+      <a href="EDA.html">Exploratory Data Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="mailto:&lt;you@youremail.com&gt;">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/YuxinYin0906/p8105_final_project">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Prediction Flights Delay</h1>
+<h4 class="author">Yumeng Qi &amp; Jiying Wang</h4>
+
+</div>
+
+
+<div id="methodology" class="section level1">
+<h1>Methodology</h1>
+<p>For our project, we aim to predict the plane delay. We split the data
+from 2013 nyc into train and test. Also, to verify the generality, we
+also applied the predict model t0 2017 dataset… TBC</p>
+</div>
+<div id="construct-a-prediction-model-on-2013-data-set"
+class="section level1">
+<h1>Construct a Prediction Model on 2013 data set</h1>
+<div id="logistic-regression" class="section level2">
+<h2>Logistic Regression</h2>
+<pre class="r"><code>set.seed(123)
+splits &lt;- initial_split(df_2013, strata = if_delay,prop = 3/4)
+
+df_other &lt;- training(splits)
+df_test  &lt;- testing(splits)
+val_set &lt;- validation_split(df_other, 
+                            strata = if_delay, 
+                            prop = 0.80)
+lr_mod &lt;- 
+  logistic_reg(penalty = tune(), mixture = 1) %&gt;% 
+  set_engine(&quot;glmnet&quot;)
+
+lr_recipe &lt;- 
+  recipe(if_delay ~ ., data = df_other) %&gt;% 
+  step_date(arrival_date) %&gt;% 
+  step_rm(arrival_date) %&gt;% 
+  step_dummy(all_nominal_predictors()) %&gt;% 
+  step_zv(all_predictors()) %&gt;% 
+  step_normalize(all_predictors())
+
+
+lr_workflow &lt;- 
+  workflow() %&gt;% 
+  add_model(lr_mod) %&gt;% 
+  add_recipe(lr_recipe)
+# grid search range
+lr_reg_grid &lt;- tibble(penalty = 10^seq(-4, -1, length.out = 30))
+
+#lr_reg_grid %&gt;% top_n(-5) # lowest penalty values
+
+#lr_res &lt;- 
+#  lr_workflow %&gt;% 
+#  tune_grid(val_set,
+ #           grid = lr_reg_grid,
+ #           control = control_grid(save_pred = TRUE),
+#            metrics = metric_set(roc_auc))
+#saveRDS(lr_res, file = &quot;Prediction_Env/lr_res.rds&quot;)
+lr_res &lt;- readRDS(&quot;Prediction_Env/lr_res.rds&quot;)
+
+# select the best penalty with the highest AUC
+lr_best &lt;- 
+  lr_res %&gt;% 
+  collect_metrics() %&gt;% 
+  arrange(desc(mean)) %&gt;% 
+  slice(1) 
+
+
+lr_res %&gt;% 
+  collect_metrics() %&gt;% 
+  ggplot(aes(x = penalty, y = mean)) + 
+  geom_point(col = &quot;skyblue&quot;) + 
+  geom_line(col = &quot;skyblue&quot;) + 
+  ylab(&quot;Area under the ROC Curve&quot;) +
+  geom_vline(aes(xintercept =  lr_best%&gt;%pull(penalty) ), color = &quot;coral&quot;)+
+  scale_x_log10(labels = scales::label_number())+
+  theme_minimal()</code></pre>
+<p><img src="Prediction_v2_files/figure-html/lr%20find%20the%20best%20hyperparameter-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>lr_auc &lt;- 
+  lr_res %&gt;% 
+  collect_predictions(parameters = lr_best) %&gt;% 
+  roc_curve(if_delay, .pred_0) %&gt;% 
+  mutate(model = &quot;Logistic Regression&quot;)
+
+#autoplot(lr_auc) +  theme_minimal()
+# calculate auc
+#lr_res %&gt;% 
+#  collect_predictions(parameters = lr_best) %&gt;% 
+#  roc_auc(if_delay, .pred_0)
+
+# Fit the model using the optimal hyper parameters
+#lr_final &lt;- logistic_reg(penalty = lr_best%&gt;%pull(penalty), mixture = 1) %&gt;%
+#                 set_engine(&quot;glmnet&quot;) %&gt;%
+#                 set_mode(&quot;classification&quot;) %&gt;%
+#                 fit(if_delay~., data = df_2013)
+#saveRDS(lr_final, file = &quot;Prediction_Env/lr_final.rds&quot;)
+lr_final &lt;- readRDS(&quot;Prediction_Env/lr_final.rds&quot;)
+
+# filter absolute value top 20
+coeff &lt;- tidy(lr_final) %&gt;% 
+  arrange(desc(abs(estimate))) %&gt;% 
+  filter(term != &#39;(Intercept)&#39;) %&gt;% 
+  slice(1:20)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack</code></pre>
+<pre><code>## Loaded glmnet 4.1-8</code></pre>
+<pre class="r"><code>ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
+   geom_col(fill = &#39;skyblue&#39;) + coord_flip()+
+  geom_text(aes(label = round(estimate,2)))+
+  theme_minimal()+
+  theme(legend.position = &quot;none&quot;) +  
+  labs(title = &quot;Feature Estimate of LASSO Regression&quot;,
+       x = &#39;Predictors&#39;,
+       y = &#39;Estimate&#39;)</code></pre>
+<p><img src="Prediction_v2_files/figure-html/print%20the%20estimate-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#ggsave(&#39;image/lr_varplot.png&#39;)</code></pre>
+</div>
+<div id="random-forest" class="section level2">
+<h2>Random Forest</h2>
+<pre class="r"><code>cores &lt;- parallel::detectCores()
+
+#cores
+rf_mod &lt;- 
+  rand_forest(mtry = tune(), min_n = tune(), trees = 1000) %&gt;% 
+  set_engine(&quot;ranger&quot;, num.threads = cores) %&gt;% 
+  set_mode(&quot;classification&quot;)
+rf_recipe &lt;- 
+  recipe(if_delay ~ ., data = df_other) %&gt;% 
+  step_date(arrival_date) %&gt;% 
+  step_rm(arrival_date)  %&gt;% 
+  step_dummy(all_nominal_predictors()) 
+
+rf_workflow &lt;- 
+  workflow() %&gt;% 
+  add_model(rf_mod) %&gt;% 
+  add_recipe(rf_recipe)
+#rf_res &lt;- 
+#  rf_workflow %&gt;% 
+#  tune_grid(val_set,
+#            grid = 25,
+#            control = control_grid(save_pred = TRUE),
+#            metrics = metric_set(roc_auc))
+#saveRDS(rf_res, file = &quot;Prediction_Env/rf_res.rds&quot;)
+rf_res &lt;- readRDS(&quot;Prediction_Env/rf_res.rds&quot;)
+rf_best &lt;- 
+  rf_res %&gt;% 
+  select_best(metric = &quot;roc_auc&quot;)
+rf_auc &lt;- 
+  rf_res %&gt;% 
+  collect_predictions(parameters = rf_best) %&gt;% 
+  roc_curve(if_delay, .pred_0) %&gt;% 
+  mutate(model = &quot;Random Forest&quot;)
+
+## plot the comparision note this is on training set
+
+bind_rows(rf_auc, lr_auc) %&gt;% 
+  ggplot(aes(x = 1 - specificity, y = sensitivity, col = model)) + 
+  geom_path(lwd = 1.5, alpha = 0.8) +
+  scale_color_manual(values = c(&quot;skyblue&quot;, &quot;coral&quot;)) +
+  geom_abline(lty = 3) + 
+  coord_equal() + 
+  theme_minimal()</code></pre>
+<p><img src="Prediction_v2_files/figure-html/rf-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># the last model
+last_rf_mod &lt;- 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %&gt;% 
+  set_engine(&quot;ranger&quot;, num.threads = cores, importance = &quot;impurity&quot;) %&gt;% 
+  set_mode(&quot;classification&quot;)
+# the last workflow
+last_rf_workflow &lt;- 
+  rf_workflow %&gt;% 
+  update_model(last_rf_mod)
+#last_rf_fit &lt;- 
+#  last_rf_workflow %&gt;% 
+#  last_fit(splits)
+#saveRDS(last_rf_fit, file = &quot;Prediction_Env/last_rf_fit.rds&quot;)
+last_rf_fit &lt;- readRDS(&quot;Prediction_Env/last_rf_fit.rds&quot;)
+# accuracy and acu
+#last_rf_fit %&gt;% 
+#  collect_metrics()
+# plot the feature importance
+last_rf_fit %&gt;% 
+  extract_fit_parsnip() %&gt;% 
+  vip(num_features = 20,aesthetics = list(fill = &quot;skyblue&quot;))+ 
+  theme_minimal() +  
+  labs(title = &quot;Feature Importance of Random Forest&quot;)</code></pre>
+<p><img src="Prediction_v2_files/figure-html/on%20the%20test%20set-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#ggsave(&#39;image/rf_varplot.png&#39;)
+rf_auc = last_rf_fit %&gt;% 
+  collect_predictions() %&gt;% 
+  roc_auc(if_delay, .pred_0) %&gt;%pull(.estimate)
+# last_rf_fit %&gt;% 
+# collect_predictions() %&gt;% 
+# roc_curve(if_delay, .pred_0) %&gt;% 
+# autoplot()+ theme_minimal() </code></pre>
+</div>
+</div>
+<div id="prediction-on-2017-dataset" class="section level1">
+<h1>Prediction on 2017 dataset</h1>
+<pre class="r"><code># pass on the recipe
+df_2017_rf = rf_recipe %&gt;%
+  prep() %&gt;%
+  bake(new_data = df_2017)
+
+rf_fit &lt;- 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %&gt;% 
+  set_engine(&quot;ranger&quot;, num.threads = cores, importance = &quot;impurity&quot;) %&gt;% 
+  set_mode(&quot;classification&quot;) %&gt;%
+  fit(if_delay~., data = df_2017_rf)
+
+pred_class &lt;- predict(rf_fit,
+                      new_data = df_2017_rf,
+                      type = &quot;prob&quot;)
+roc(df_2017_rf$if_delay, pred_class$.pred_0)$auc</code></pre>
+<pre><code>## Setting levels: control = 0, case = 1</code></pre>
+<pre><code>## Setting direction: controls &gt; cases</code></pre>
+<pre><code>## Area under the curve: 0.9652</code></pre>
+<pre class="r"><code>predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
+predicted_class = factor(predicted_class)
+# 创建混淆矩阵
+conf_matrix_rf &lt;- confusionMatrix(data = predicted_class, reference = df_2017_rf$if_delay)
+#conf_matrix_rf
+
+df_2017_lr = lr_recipe %&gt;%
+  prep() %&gt;%
+  bake(new_data = df_2017)
+# Fit the model using the optimal hyperparameters
+lr_fit &lt;- logistic_reg(penalty = 0.000127, mixture = 1) %&gt;%
+                 set_engine(&quot;glmnet&quot;) %&gt;%
+                 set_mode(&quot;classification&quot;) %&gt;%
+                 fit(if_delay~., data = df_2017_lr)
+
+pred_class &lt;- predict(lr_fit,
+                      new_data = df_2017_lr,
+                      type = &quot;prob&quot;)
+
+roc(df_2017_lr$if_delay, pred_class$.pred_0)$auc</code></pre>
+<pre><code>## Setting levels: control = 0, case = 1
+## Setting direction: controls &gt; cases</code></pre>
+<pre><code>## Area under the curve: 0.7799</code></pre>
+<pre class="r"><code>predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
+predicted_class = factor(predicted_class)
+# 创建混淆矩阵
+conf_matrix_lr &lt;- confusionMatrix(data = predicted_class, reference = df_2017_lr$if_delay)
+
+# 查看混淆矩阵
+#conf_matrix_lr
+conf_matrix = rbind(conf_matrix_lr[[&quot;byClass&quot;]],conf_matrix_rf[[&quot;byClass&quot;]])
+rownames(conf_matrix) = c(&quot;Logistic&quot;,&quot;Random Forrest&quot;)
+#stargazer(conf_matrix, summary=FALSE, rownames=TRUE,type = &#39;html&#39;)</code></pre>
+<table style="text-align:center">
+<tr>
+<td colspan="12" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+Sensitivity
+</td>
+<td>
+Specificity
+</td>
+<td>
+Pos Pred Value
+</td>
+<td>
+Neg Pred Value
+</td>
+<td>
+Precision
+</td>
+<td>
+Recall
+</td>
+<td>
+F1
+</td>
+<td>
+Prevalence
+</td>
+<td>
+Detection Rate
+</td>
+<td>
+Detection Prevalence
+</td>
+<td>
+Balanced Accuracy
+</td>
+</tr>
+<tr>
+<td colspan="12" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Logistic
+</td>
+<td>
+0.880
+</td>
+<td>
+0.470
+</td>
+<td>
+0.759
+</td>
+<td>
+0.673
+</td>
+<td>
+0.759
+</td>
+<td>
+0.880
+</td>
+<td>
+0.815
+</td>
+<td>
+0.655
+</td>
+<td>
+0.577
+</td>
+<td>
+0.760
+</td>
+<td>
+0.675
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Random Forrest
+</td>
+<td>
+0.970
+</td>
+<td>
+0.702
+</td>
+<td>
+0.861
+</td>
+<td>
+0.925
+</td>
+<td>
+0.861
+</td>
+<td>
+0.970
+</td>
+<td>
+0.912
+</td>
+<td>
+0.655
+</td>
+<td>
+0.636
+</td>
+<td>
+0.738
+</td>
+<td>
+0.836
+</td>
+</tr>
+<tr>
+<td colspan="12" style="border-bottom: 1px solid black">
+</td>
+</tr>
+</table>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

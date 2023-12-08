@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Flight Delays: An Analysis of Patterns and Predictive Modeling</title>
+
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    About
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Us</li>
+  </ul>
+</li>
+<li>
+  <a href="report.html">Final Report</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="data_preprocess.html">Data Cleaning</a>
+    </li>
+    <li>
+      <a href="data_preprocess.html">Data Souce</a>
+    </li>
+    <li>
+      <a href="EDA.html">Exploratory Data Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="mailto:&lt;you@youremail.com&gt;">
+    <span class="fa fa-envelope fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/YuxinYin0906/p8105_final_project">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Flight Delays: An Analysis of Patterns and
+Predictive Modeling</h1>
+
+</div>
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>New York City, a global fusion of diverse culture and busy travel, is
+serviced by three major airports: John F. Kennedy International Airport
+(JFK), LaGuardia Airport (LGA), and Newark Liberty International Airport
+(EWR). These airports are not only pivotal in the United States’ air
+traffic network but also play a significant role in international air
+travel. This report incorporates an in-depth predictive analysis of
+flight delays at these three airports, which reveal patterns and
+probabilities of such delays.This study seeks to provide a robust
+framework for predicting flight delays, and thus providing better
+planning and management guideline for passengers.</p>
+<div style="text-align: center;">
+<p><img src="image/nyc-airport-transportation.jpg" style="width: 80%;"></p>
+</div>
+</div>
+<div id="motivation" class="section level1">
+<h1>Motivation</h1>
+<p>The airline industry is highly dependent on timely flight operations,
+and flight delays are a common concern for both passengers and airlines.
+Flight delays have far-reaching impacts, including not only economic
+costs for airlines but also inconvenience for passengers. Understanding
+and predicting these delays can lead to improving airlines efficiency
+and customer satisfaction. In addition, the New York City area’s unique
+geographical and diverse cultural characteristics present an intriguing
+case for study. The region’s congested airspace, fluctuated weather
+conditions, and intense flight schedules create an environment where
+delays are frequent. Analyzing this environment offers valuable insights
+into urban airport operations and delay management, potentially serving
+as a model for other major cities that share similar backgrounds as
+well.</p>
+</div>
+<div id="inspiration-and-related-work" class="section level1">
+<h1>Inspiration and Related Work</h1>
+</div>
+<div id="initial-questions" class="section level1">
+<h1>Initial Questions</h1>
+<p>For the purpose of the project, we will be answering the following
+questions: <br> - Which factors may build a model for predicting flight
+delays? <br> - Does our model based on data from 2013 could be
+potentially used to predict flight delays in 2017? <br> - Can our model
+be generalized based on the reults of the previous question. <br></p>
+</div>
+<div id="data" class="section level1">
+<h1>Data</h1>
+</div>
+<div id="exploratory-analysis" class="section level1">
+<h1>Exploratory analysis</h1>
+</div>
+<div id="additional-analysis" class="section level1">
+<h1>Additional analysis</h1>
+</div>
+<div id="discussion" class="section level1">
+<h1>Discussion</h1>
+<p>The objective of the study was to assess the correlation between
+flight delay duration and various flight-related factors using multiple
+linear regression. Additionally, the research aimed to forecast flight
+delays by employing a machine learning framework.</p>
+<div id="variable-selection" class="section level2">
+<h2>Variable Selection</h2>
+<p>Lasso Regression and Random Forest models were applied to analyze the
+2013 New York City flight dataset. The accompanying plots shed light on
+the ‘variable importance.’ On the right side, the top 20 absolute value
+estimates of Lasso Regression reveal a predominant presence of
+destination dummy variables. In contrast, the Random Forest plot on the
+left tells a distinct tale. Continuous variables such as airtime,
+pressure, distance, etc., play a more significant role in predicting
+delays compared to other categorical variables.</p>
+<p><img src="image/lr_varplot.png" style="width:45.0%"
+alt="Caption for Image 1" /> <img src="image/rf_varplot.png"
+style="width:45.0%" alt="Caption for Image 2" /></p>
+<p>The difference in ‘variable importance’ between Lasso Regression and
+Random Forest models can be attributed to the inherent characteristics
+and mechanisms of each algorithm:</p>
+<p>Lasso Regression (LR):</p>
+<ul>
+<li>Preference for Categorical Variables: LR performs variable selection
+by shrinking the coefficients of less influential variables to exactly
+zero. It tends to favor sparse solutions and is particularly effective
+when dealing with high-dimensional data.</li>
+</ul>
+<p>Random Forest (RF):</p>
+<ul>
+<li><p>Ensemble of Decision Trees: RF builds an ensemble of decision
+trees, each trained on a random subset of the data and features. This
+ensemble approach allows the model to capture complex interactions and
+non-linear relationships.</p></li>
+<li><p>Handling Mixed Data Types: Unlike LR, RF is well-suited for
+handling both categorical and continuous variables simultaneously. It
+can effectively evaluate the importance of features with various data
+types.</p></li>
+<li><p>Robust to Collinearity: RF is less sensitive to
+multicollinearity, which means it can handle correlated features without
+necessarily discarding one of them. This can be advantageous when
+dealing with a mix of categorical and continuous variables.</p></li>
+</ul>
+</div>
+<div id="model-performance" class="section level2">
+<h2>Model Performance</h2>
+<p>2017 New York City flight dataset was used for model evaluation.
+Notably, the Random Forest model exhibited superior performance across a
+majority of evaluation metrics.</p>
+<table>
+<colgroup>
+<col width="11%" />
+<col width="7%" />
+<col width="7%" />
+<col width="9%" />
+<col width="9%" />
+<col width="6%" />
+<col width="4%" />
+<col width="3%" />
+<col width="6%" />
+<col width="9%" />
+<col width="12%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Sensitivity</th>
+<th>Specificity</th>
+<th>Pos Pred Value</th>
+<th>Neg Pred Value</th>
+<th>Precision</th>
+<th>Recall</th>
+<th>F1</th>
+<th>Prevalence</th>
+<th>Detection Rate</th>
+<th>Detection Prevalence</th>
+<th>Balanced Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Logistic</td>
+<td>0.880</td>
+<td>0.470</td>
+<td>0.759</td>
+<td>0.673</td>
+<td>0.759</td>
+<td>0.880</td>
+<td>0.815</td>
+<td>0.655</td>
+<td>0.577</td>
+<td>0.760</td>
+<td>0.675</td>
+</tr>
+<tr class="even">
+<td>RF</td>
+<td>0.971</td>
+<td>0.710</td>
+<td>0.864</td>
+<td>0.928</td>
+<td>0.864</td>
+<td>0.971</td>
+<td>0.915</td>
+<td>0.655</td>
+<td>0.637</td>
+<td>0.736</td>
+<td>0.841</td>
+</tr>
+</tbody>
+</table>
+<p>Random Forest might outperform Lasso Regression in predicting flight
+delays for several reasons:</p>
+<ul>
+<li><p>Handling Non-linearity: Flight delay prediction is likely
+influenced by a combination of linear and non-linear factors. RF, being
+a non-linear model, can handle complex relationships and interactions
+more effectively than LR, which assumes a linear relationship between
+the predictors and the response variable.</p></li>
+<li><p>Feature Importance: RF inherently assesses the importance of
+different features in making predictions. This feature importance can be
+beneficial in scenarios where certain variables play a more crucial role
+in determining outcomes, and RF can adapt to this by giving more weight
+to those features. LR, while performing feature selection by shrinking
+some coefficients to zero, might not capture non-linear relationships or
+account for intricate feature interactions as comprehensively.</p></li>
+<li><p>Robustness to Outliers: RF is generally more robust to outliers
+and noisy data compared to LR.</p></li>
+</ul>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

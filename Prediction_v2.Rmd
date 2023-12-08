@@ -1,0 +1,309 @@
+---
+title: "Prediction Flights Delay"
+author: "Yumeng Qi & Jiying Wang"
+output: 
+  html_document:
+    toc: true
+    code_folding: hide
+    toc_float: true
+---
+
+
+# Methodology
+
+For our project, we aim to predict the plane delay. We split the data from 2013 nyc into train and test. Also, to verify the generality, we also applied the predict model t0 2017 dataset... TBC
+
+
+```{r libraries, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      fig.align = 'center')
+
+library(tidyverse)
+library(tidymodels)
+library(yardstick)
+library(vip)
+library(pROC)
+library(caret)
+library(stargazer)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+```
+
+```{r load_data, include = FALSE}
+df_2013_raw =  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
+df_2017_raw = read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
+
+dest_int =  intersect(unique(df_2017_raw$dest),unique(df_2013_raw$dest))
+carrier_int =  intersect(unique(df_2017_raw$carrier),unique(df_2013_raw$carrier))
+
+df_2013 = df_2013_raw |>
+  mutate(if_delay = if_else(arr_delay >0,1,0),
+         if_delay = factor(if_delay),
+         #carrier_bin = if_else(!(carrier %in% c('UA','EV','DL','B6')),'Others',carrier),
+         #month = factor(month,levels = 1:12, labels = month.abb[1:12]),
+         arrival_date = paste(year,"-",month,"-",day, sep = ""),
+         arrival_date = date(arrival_date),
+         hour = if_else(hour >=5 & hour < 12,'Morning',
+                        if_else(hour >=12 & hour < 17,'Afternoon',
+                                if_else(hour >=17 & hour <= 21,'Evening','Night')))
+        # hour = factor(flight,ordered = TRUE)
+         ) |>
+  filter(dest %in% dest_int,
+         carrier %in% carrier_int)|>
+  select(-tailnum,-arr_delay, -year, -month, -day, -flight) 
+
+df_2017 = df_2017_raw |>
+  mutate(if_delay = if_else(arr_delay >0,1,0),
+         if_delay = factor(if_delay),
+         arrival_date = paste(year,"-",month,"-",day, sep = ""),
+         arrival_date = date(arrival_date),
+         hour = if_else(hour >=5 & hour < 12,'Morning',
+                        if_else(hour >=12 & hour < 17,'Afternoon',
+                                if_else(hour >=17 & hour <= 21,'Evening','Night'))))|>
+  filter(dest %in% intersect(unique(df_2017_raw$dest),unique(df_2013$dest)),
+         carrier %in% intersect(unique(df_2017_raw$carrier),unique(df_2013$carrier)))  |>
+  select(-tailnum,-arr_delay,
+           -year, -month, -day, -flight) 
+```
+
+# Construct a Prediction Model on 2013 data set
+
+## Logistic Regression
+
+```{r lr find the best hyperparameter}
+set.seed(123)
+splits <- initial_split(df_2013, strata = if_delay,prop = 3/4)
+
+df_other <- training(splits)
+df_test  <- testing(splits)
+val_set <- validation_split(df_other, 
+                            strata = if_delay, 
+                            prop = 0.80)
+lr_mod <- 
+  logistic_reg(penalty = tune(), mixture = 1) %>% 
+  set_engine("glmnet")
+
+lr_recipe <- 
+  recipe(if_delay ~ ., data = df_other) %>% 
+  step_date(arrival_date) %>% 
+  step_rm(arrival_date) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_normalize(all_predictors())
+
+
+lr_workflow <- 
+  workflow() %>% 
+  add_model(lr_mod) %>% 
+  add_recipe(lr_recipe)
+# grid search range
+lr_reg_grid <- tibble(penalty = 10^seq(-4, -1, length.out = 30))
+
+#lr_reg_grid %>% top_n(-5) # lowest penalty values
+
+#lr_res <- 
+#  lr_workflow %>% 
+#  tune_grid(val_set,
+ #           grid = lr_reg_grid,
+ #           control = control_grid(save_pred = TRUE),
+#            metrics = metric_set(roc_auc))
+#saveRDS(lr_res, file = "Prediction_Env/lr_res.rds")
+lr_res <- readRDS("Prediction_Env/lr_res.rds")
+
+# select the best penalty with the highest AUC
+lr_best <- 
+  lr_res %>% 
+  collect_metrics() %>% 
+  arrange(desc(mean)) %>% 
+  slice(1) 
+
+
+lr_res %>% 
+  collect_metrics() %>% 
+  ggplot(aes(x = penalty, y = mean)) + 
+  geom_point(col = "skyblue") + 
+  geom_line(col = "skyblue") + 
+  ylab("Area under the ROC Curve") +
+  geom_vline(aes(xintercept =  lr_best%>%pull(penalty) ), color = "coral")+
+  scale_x_log10(labels = scales::label_number())+
+  theme_minimal()
+  
+```
+
+```{r print the estimate}
+lr_auc <- 
+  lr_res %>% 
+  collect_predictions(parameters = lr_best) %>% 
+  roc_curve(if_delay, .pred_0) %>% 
+  mutate(model = "Logistic Regression")
+
+#autoplot(lr_auc) +  theme_minimal()
+# calculate auc
+#lr_res %>% 
+#  collect_predictions(parameters = lr_best) %>% 
+#  roc_auc(if_delay, .pred_0)
+
+# Fit the model using the optimal hyper parameters
+#lr_final <- logistic_reg(penalty = lr_best%>%pull(penalty), mixture = 1) %>%
+#                 set_engine("glmnet") %>%
+#                 set_mode("classification") %>%
+#                 fit(if_delay~., data = df_2013)
+#saveRDS(lr_final, file = "Prediction_Env/lr_final.rds")
+lr_final <- readRDS("Prediction_Env/lr_final.rds")
+
+# filter absolute value top 20
+coeff <- tidy(lr_final) %>% 
+  arrange(desc(abs(estimate))) %>% 
+  filter(term != '(Intercept)') %>% 
+  slice(1:20)
+ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
+   geom_col(fill = 'skyblue') + coord_flip()+
+  geom_text(aes(label = round(estimate,2)))+
+  theme_minimal()+
+  theme(legend.position = "none") +  
+  labs(title = "Feature Estimate of LASSO Regression",
+       x = 'Predictors',
+       y = 'Estimate')
+#ggsave('image/lr_varplot.png')
+```
+
+## Random Forest 
+
+```{r rf}
+
+cores <- parallel::detectCores()
+
+#cores
+rf_mod <- 
+  rand_forest(mtry = tune(), min_n = tune(), trees = 1000) %>% 
+  set_engine("ranger", num.threads = cores) %>% 
+  set_mode("classification")
+rf_recipe <- 
+  recipe(if_delay ~ ., data = df_other) %>% 
+  step_date(arrival_date) %>% 
+  step_rm(arrival_date)  %>% 
+  step_dummy(all_nominal_predictors()) 
+
+rf_workflow <- 
+  workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(rf_recipe)
+#rf_res <- 
+#  rf_workflow %>% 
+#  tune_grid(val_set,
+#            grid = 25,
+#            control = control_grid(save_pred = TRUE),
+#            metrics = metric_set(roc_auc))
+#saveRDS(rf_res, file = "Prediction_Env/rf_res.rds")
+rf_res <- readRDS("Prediction_Env/rf_res.rds")
+rf_best <- 
+  rf_res %>% 
+  select_best(metric = "roc_auc")
+rf_auc <- 
+  rf_res %>% 
+  collect_predictions(parameters = rf_best) %>% 
+  roc_curve(if_delay, .pred_0) %>% 
+  mutate(model = "Random Forest")
+
+## plot the comparision note this is on training set
+
+bind_rows(rf_auc, lr_auc) %>% 
+  ggplot(aes(x = 1 - specificity, y = sensitivity, col = model)) + 
+  geom_path(lwd = 1.5, alpha = 0.8) +
+  scale_color_manual(values = c("skyblue", "coral")) +
+  geom_abline(lty = 3) + 
+  coord_equal() + 
+  theme_minimal()
+```
+
+
+```{r on the test set}
+# the last model
+last_rf_mod <- 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %>% 
+  set_engine("ranger", num.threads = cores, importance = "impurity") %>% 
+  set_mode("classification")
+# the last workflow
+last_rf_workflow <- 
+  rf_workflow %>% 
+  update_model(last_rf_mod)
+#last_rf_fit <- 
+#  last_rf_workflow %>% 
+#  last_fit(splits)
+#saveRDS(last_rf_fit, file = "Prediction_Env/last_rf_fit.rds")
+last_rf_fit <- readRDS("Prediction_Env/last_rf_fit.rds")
+# accuracy and acu
+#last_rf_fit %>% 
+#  collect_metrics()
+# plot the feature importance
+last_rf_fit %>% 
+  extract_fit_parsnip() %>% 
+  vip(num_features = 20,aesthetics = list(fill = "skyblue"))+ 
+  theme_minimal() +  
+  labs(title = "Feature Importance of Random Forest")
+#ggsave('image/rf_varplot.png')
+rf_auc = last_rf_fit %>% 
+  collect_predictions() %>% 
+  roc_auc(if_delay, .pred_0) %>%pull(.estimate)
+# last_rf_fit %>% 
+# collect_predictions() %>% 
+# roc_curve(if_delay, .pred_0) %>% 
+# autoplot()+ theme_minimal() 
+
+```
+# Prediction on 2017 dataset
+
+```{r Prediction on 2017}
+# pass on the recipe
+df_2017_rf = rf_recipe %>%
+  prep() %>%
+  bake(new_data = df_2017)
+
+rf_fit <- 
+  rand_forest(mtry = 31, min_n = 26, trees = 1000) %>% 
+  set_engine("ranger", num.threads = cores, importance = "impurity") %>% 
+  set_mode("classification") %>%
+  fit(if_delay~., data = df_2017_rf)
+
+pred_class <- predict(rf_fit,
+                      new_data = df_2017_rf,
+                      type = "prob")
+roc(df_2017_rf$if_delay, pred_class$.pred_0)$auc
+predicted_class <- ifelse(pred_class$.pred_0 >= 0.5, 0, 1)
+predicted_class = factor(predicted_class)
+# 创建混淆矩阵
+conf_matrix_rf <- confusionMatrix(data = predicted_class, reference = df_2017_rf$if_delay)
+#conf_matrix_rf
+
+df_2017_lr = lr_recipe %>%
+  prep() %>%
+  bake(new_data = df_2017)
+# Fit the model using the optimal hyperparameters
+lr_fit <- logistic_reg(penalty = 0.000127, mixture = 1) %>%
+                 set_engine("glmnet") %>%
+                 set_mode("classification") %>%
+                 fit(if_delay~., data = df_2017_lr)
+
+pred_class <- predict(lr_fit,
+                      new_data = df_2017_lr,
+                      type = "prob")
+
+roc(df_2017_lr$if_delay, pred_class$.pred_0)$auc
+predicted_class <- ifelse(pred_class$.pred_0 >= 0.5, 0, 1)
+predicted_class = factor(predicted_class)
+# 创建混淆矩阵
+conf_matrix_lr <- confusionMatrix(data = predicted_class, reference = df_2017_lr$if_delay)
+
+# 查看混淆矩阵
+#conf_matrix_lr
+conf_matrix = rbind(conf_matrix_lr[["byClass"]],conf_matrix_rf[["byClass"]])
+rownames(conf_matrix) = c("Logistic","Random Forrest")
+#stargazer(conf_matrix, summary=FALSE, rownames=TRUE,type = 'html')
+```
+
+<table style="text-align:center"><tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>Sensitivity</td><td>Specificity</td><td>Pos Pred Value</td><td>Neg Pred Value</td><td>Precision</td><td>Recall</td><td>F1</td><td>Prevalence</td><td>Detection Rate</td><td>Detection Prevalence</td><td>Balanced Accuracy</td></tr>
+<tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Logistic</td><td>0.880</td><td>0.470</td><td>0.759</td><td>0.673</td><td>0.759</td><td>0.880</td><td>0.815</td><td>0.655</td><td>0.577</td><td>0.760</td><td>0.675</td></tr>
+<tr><td style="text-align:left">Random Forrest</td><td>0.970</td><td>0.702</td><td>0.861</td><td>0.925</td><td>0.861</td><td>0.970</td><td>0.912</td><td>0.655</td><td>0.636</td><td>0.738</td><td>0.836</td></tr>
+<tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr></table>
