@@ -9,9 +9,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Qi Yumeng" />
+<meta name="author" content="Qi Yumeng &amp; Jiying Wang" />
 
-<meta name="date" content="2023-12-07" />
 
 <title>Prediction_v2</title>
 
@@ -32,6 +31,7 @@
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
@@ -220,6 +220,9 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -249,8 +252,15 @@ $(document).ready(function () {
         
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li>
-  <a href="about.html">About</a>
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    About
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Us</li>
+  </ul>
 </li>
 <li>
   <a href="report.html">Final Report</a>
@@ -292,11 +302,18 @@ $(document).ready(function () {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">Prediction_v2</h1>
-<h4 class="author">Qi Yumeng</h4>
-<h4 class="date">2023-12-07</h4>
+<h4 class="author">Qi Yumeng &amp; Jiying Wang</h4>
 
 </div>
 
@@ -310,12 +327,14 @@ also applied the predict model t0 2017 dataset… TBC</p>
 <div id="construct-a-prediction-model-on-2013-data-set"
 class="section level1">
 <h1>Construct a Prediction Model on 2013 data set</h1>
-<div id="split-the-data" class="section level2">
-<h2>Split the data</h2>
-</div>
 <div id="logistic-regression" class="section level2">
 <h2>Logistic Regression</h2>
-<pre class="r"><code>val_set &lt;- validation_split(df_other, 
+<pre class="r"><code>set.seed(123)
+splits &lt;- initial_split(df_2013, strata = if_delay,prop = 3/4)
+
+df_other &lt;- training(splits)
+df_test  &lt;- testing(splits)
+val_set &lt;- validation_split(df_other, 
                             strata = if_delay, 
                             prop = 0.80)
 lr_mod &lt;- 
@@ -701,6 +720,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

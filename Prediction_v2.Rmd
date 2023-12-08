@@ -1,8 +1,10 @@
 ---
 title: "Prediction_v2"
-author: "Qi Yumeng"
-date: "2023-12-07"
-output: github_document
+author: "Qi Yumeng & Jiying Wang"
+output: 
+  html_document:
+    code_folding: hide
+    toc_float: true
 ---
 
 
@@ -67,19 +69,14 @@ df_2017 = df_2017_raw |>
 
 # Construct a Prediction Model on 2013 data set
 
-## Split the data
+## Logistic Regression
 
-```{r split data, include = FALSE}
+```{r lr find the best hyperparameter}
 set.seed(123)
 splits <- initial_split(df_2013, strata = if_delay,prop = 3/4)
 
 df_other <- training(splits)
 df_test  <- testing(splits)
-```
-
-## Logistic Regression
-
-```{r lr find the best hyperparameter}
 val_set <- validation_split(df_other, 
                             strata = if_delay, 
                             prop = 0.80)
