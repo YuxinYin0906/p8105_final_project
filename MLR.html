@@ -9,11 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Qi Yumeng" />
+<meta name="author" content="Yumeng Qi &amp; Jiying Wang" />
 
-<meta name="date" content="2023-12-07" />
 
-<title>MLR</title>
+<title>Mutiple Linear Regression</title>
 
 <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -32,6 +31,7 @@
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
@@ -220,6 +220,9 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -249,8 +252,15 @@ $(document).ready(function () {
         
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li>
-  <a href="about.html">About</a>
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    About
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Us</li>
+  </ul>
 </li>
 <li>
   <a href="report.html">Final Report</a>
@@ -292,29 +302,97 @@ $(document).ready(function () {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
-<h1 class="title toc-ignore">MLR</h1>
-<h4 class="author">Qi Yumeng</h4>
-<h4 class="date">2023-12-07</h4>
+
+<h1 class="title toc-ignore">Mutiple Linear Regression</h1>
+<h4 class="author">Yumeng Qi &amp; Jiying Wang</h4>
 
 </div>
 
 
+<p>In this section, our objective is to elucidate the connection between
+flight-related information and flight delays within the framework of
+linear regression. Adhering to the model’s assumptions, our initial step
+involves computing pairwise correlation coefficients to mitigate the
+impact of multicollinearity. Pairs exhibiting coefficients exceeding 0.8
+are deemed highly correlated, signifying the potential to introduce
+distortion into the model. Subsequently, we conducted stepwise
+regression selection, minimizing the Akaike Information Criterion (AIC).
+This stepwise approach assists in refining the model by iteratively
+adding or removing variables, ensuring a more parsimonious and
+statistically robust representation of the relationship between the
+variables and flight delays.</p>
+<div id="correlation-coefficient" class="section level1">
+<h1>Correlation Coefficient</h1>
+<p>Upon examining the plot, we observed two pairs with correlation
+coefficients surpassing 0.8: namely, wind_gust and wind_speed, and
+air_time and distance. The presence of highly correlated pairs suggests
+a potential for one variable to be essentially substituted by another in
+the model, which leads to the problem of multicollinearity. In the
+presence of multicollinearity, the estimates of individual regression
+coefficients become sensitive to small changes in the data. This
+sensitivity can lead to coefficients with large standard errors and
+reduced statistical significance. Also, it inflates the variance of the
+regression coefficients, making them less precise. This increased
+variance can result in wider confidence intervals, making it more
+challenging to draw reliable conclusions about the effects of individual
+predictors.</p>
 <pre class="r"><code>df_2013_mlr = df_2013_mlr |&gt;
   mutate_if(is.numeric, scale) 
-# no correlation coefficient larger than 0.8
-# so no need for deleting 
+
+
 M = cor(df_2013_mlr |&gt; select_if(is.numeric))
 corrplot(M, order = &#39;AOE&#39;, type = &#39;upper&#39;, tl.pos = &#39;n&#39;, method = &quot;number&quot;)
 corrplot(M, add = TRUE, type = &#39;lower&#39;, method = &#39;ellipse&#39;, order = &#39;AOE&#39;,
-         diag = FALSE, tl.pos = &#39;l&#39;, cl.pos = &#39;n&#39;,tl.col=&#39;black&#39;)</code></pre>
+         diag = FALSE, tl.pos = &#39;l&#39;, cl.pos = &#39;n&#39;,tl.col=&#39;black&#39;,tl.cex = 0.8)</code></pre>
 <p><img src="MLR_files/figure-html/scale-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#corrplot(cor(df_2013_mlr |&gt; select_if(is.numeric)),  method = &quot;number&quot;)
-# delete distance and wind_speed for less unqiue value
-
-df_2013_mlr = df_2013_mlr |&gt;
- dplyr::select(-wind_speed,-distance)</code></pre>
+# delete distance and wind_speed for less unqiue value</code></pre>
+<p>In response to this correlation finding, we conducted an assessment
+based on the unique values of each variable within these pairs. The
+rationale was to retain the variable with a greater number of unique
+values, indicative of a broader range of information. Consequently, we
+decided to eliminate wind_speed and distance from the analysis, aiming
+to enhance the model’s stability and interpretability by resolving
+multicollinearity issues.</p>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="23%" />
+<col width="26%" />
+<col width="21%" />
+<col width="21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>highly correlated variables</th>
+<th>wind_gust</th>
+<th>wind_speed</th>
+<th>air_time</th>
+<th>distance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>unique cnt</td>
+<td>33</td>
+<td>30</td>
+<td>462</td>
+<td>177</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="stepwise-regression" class="section level1">
+<h1>Stepwise Regression</h1>
 <pre class="r"><code>fit_AIC = lm(formula = arr_delay ~ origin + hour + carrier + dest + air_time + minute + 
     wind_dir + pressure + visib + arrival_date,
     data = df_2013_mlr)
@@ -2797,6 +2875,7 @@ F Statistic
 </td>
 </tr>
 </table>
+</div>
 
 
 
@@ -2831,6 +2910,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

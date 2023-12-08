@@ -1,9 +1,12 @@
 ---
-title: "MLR"
-author: "Qi Yumeng"
-date: "2023-12-07"
-output: github_document
+title: "Mutiple Linear Regression"
+author: "Yumeng Qi & Jiying Wang"
+output: 
+  html_document:
+    code_folding: hide
+    toc_float: true
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
@@ -26,6 +29,12 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ``` 
 
+In this section, our objective is to elucidate the connection between flight-related information and flight delays within the framework of linear regression. Adhering to the model's assumptions, our initial step involves computing pairwise correlation coefficients to mitigate the impact of multicollinearity. Pairs exhibiting coefficients exceeding 0.8 are deemed highly correlated, signifying the potential to introduce distortion into the model. Subsequently, we conducted stepwise regression selection, minimizing the Akaike Information Criterion (AIC). This stepwise approach assists in refining the model by iteratively adding or removing variables, ensuring a more parsimonious and statistically robust representation of the relationship between the variables and flight delays.
+
+# Correlation Coefficient
+
+Upon examining the plot, we observed two pairs with correlation coefficients surpassing 0.8: namely, wind_gust and wind_speed, and air_time and distance. The presence of highly correlated pairs suggests a potential for one variable to be essentially substituted by another in the model, which leads to the problem of multicollinearity. In the presence of multicollinearity, the estimates of individual regression coefficients become sensitive to small changes in the data. This sensitivity can lead to coefficients with large standard errors and reduced statistical significance. Also, it inflates the variance of the regression coefficients, making them less precise. This increased variance can result in wider confidence intervals, making it more challenging to draw reliable conclusions about the effects of individual predictors.
+ 
 ```{r load_data, include = FALSE}
 df_2013_raw =  read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
 df_2017_raw = read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
@@ -51,21 +60,28 @@ df_2013_mlr = df_2013_raw |>
 ```{r scale}
 df_2013_mlr = df_2013_mlr |>
   mutate_if(is.numeric, scale) 
-# no correlation coefficient larger than 0.8
-# so no need for deleting 
+
+
 M = cor(df_2013_mlr |> select_if(is.numeric))
 corrplot(M, order = 'AOE', type = 'upper', tl.pos = 'n', method = "number")
 corrplot(M, add = TRUE, type = 'lower', method = 'ellipse', order = 'AOE',
-         diag = FALSE, tl.pos = 'l', cl.pos = 'n',tl.col='black')
+         diag = FALSE, tl.pos = 'l', cl.pos = 'n',tl.col='black',tl.cex = 0.8)
 #corrplot(cor(df_2013_mlr |> select_if(is.numeric)),  method = "number")
 # delete distance and wind_speed for less unqiue value
+```
+
+In response to this correlation finding, we conducted an assessment based on the unique values of each variable within these pairs. The rationale was to retain the variable with a greater number of unique values, indicative of a broader range of information. Consequently, we decided to eliminate wind_speed and distance from the analysis, aiming to enhance the model's stability and interpretability by resolving multicollinearity issues.
+
+|highly correlated variables  | wind_gust | wind_speed | air_time | distance |
+|---|-----------|------------|----------|----------|
+|unique cnt| `r length(unique(df_2013_mlr$wind_gust))`| `r length(unique(df_2013_mlr$wind_speed))`| `r length(unique(df_2013_mlr$air_time))`|`r length(unique(df_2013_mlr$distance))`|
+
+# Stepwise Regression
+
+```{r AIC, include = FALSE}
 
 df_2013_mlr = df_2013_mlr |>
  dplyr::select(-wind_speed,-distance)
-```
-
-
-```{r AIC, include = FALSE}
 #fit = lm(arr_delay ~ . , data = df_2013_mlr)
 #stepAIC(fit, direction="both")
 ```

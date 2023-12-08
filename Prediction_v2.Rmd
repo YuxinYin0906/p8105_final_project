@@ -1,6 +1,6 @@
 ---
-title: "Prediction_v2"
-author: "Qi Yumeng & Jiying Wang"
+title: "Prediction Flights Delay"
+author: "Yumeng Qi & Jiying Wang"
 output: 
   html_document:
     code_folding: hide
