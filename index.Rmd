@@ -25,4 +25,3 @@ The airline industry is highly dependent on timely flight operations, and flight
 * Si Chen, sc5126
 * Yuxin Yin, yy3439
 
-<img src="image/2.jpeg" style="width:100%">
