@@ -9,13 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Si Chen" />
 
-<meta name="date" content="2023-12-07" />
 
-<title>EDA</title>
+<title>Exploratory Data Analysis</title>
 
-<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
@@ -31,6 +29,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
@@ -227,6 +228,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -234,6 +298,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -253,8 +327,15 @@ $(document).ready(function () {
         
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li>
-  <a href="about.html">About</a>
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    About
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-header">Us</li>
+  </ul>
 </li>
 <li>
   <a href="report.html">Final Report</a>
@@ -306,13 +387,26 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">EDA</h1>
-<h4 class="author">Si Chen</h4>
-<h4 class="date">2023-12-07</h4>
+<h1 class="title toc-ignore">Exploratory Data Analysis</h1>
 
 </div>
 
 
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
+<p>To provide an overall view of the distribution in arrival delay (in
+minutes), we created a histogram for the arrival delay in 2013, a
+barplot showing the arrival status categorized by three NYC departure
+airports (<code>LGA</code>, <code>JFK</code>, <code>EWR</code>) and a
+boxplot below displaying the top 6 average arrival delay grouped by
+destinations. Additionally, we then visualized the correlation between
+arrival delay and weather features (e.g.,<code>pressure</code>,
+<code>wind</code>, <code>visibility</code>, etc.) and some other
+external factors including <code>flight carriers</code>,
+<code>month</code> and specific datetime features.</p>
+<p>Note: All visualization parts were performed on data consisting of
+flight and weather information in 2013. Data in 2017 was reserved for
+testing purpose only.</p>
 <pre class="r"><code>library(tidyr)
 library(tidyverse)
 library(rvest)
@@ -324,6 +418,7 @@ library(plotly)
 library(corrplot)
 library(ggpubr)
 library(viridisLite)
+library(patchwork)
 
 knitr::opts_chunk$set(
     echo = TRUE,
@@ -333,7 +428,10 @@ knitr::opts_chunk$set(
   out.width = &quot;90%&quot;
 )
 
-theme_set(theme_minimal() + theme(legend.position = &quot;bottom&quot;))
+theme_set(theme_minimal() + 
+          theme(legend.position = &quot;bottom&quot;,
+                plot.title= element_text(hjust = 0.5))
+          )
 
 options(
   ggplot2.continuous.colour = &quot;viridis&quot;,
@@ -341,8 +439,10 @@ options(
 )
 
 scale_colour_discrete = scale_colour_viridis_d
-scale_fill_discrete = scale_fill_viridis_d</code></pre>
-<pre class="r"><code>df_2013 = 
+scale_fill_discrete = scale_fill_viridis_d
+
+## Load dataset
+df_2013 = 
   read_csv(&quot;data/merge_data_2013.csv&quot;, show_col_types = FALSE)
 
 
@@ -379,17 +479,128 @@ df_2013_avg &lt;- df_2013 %&gt;%
     avg_pressure = mean(pressure, na.rm = TRUE),
     avg_visib = mean(visib, na.rm = TRUE)
   )</code></pre>
+</div>
 <div id="arrival-delay-summary" class="section level2">
 <h2>Arrival Delay Summary</h2>
 <pre class="r"><code>dd_hist = 
   ggplot(data = df_2013, aes(x = arr_delay)) +
-  geom_histogram(fill = &#39;skyblue&#39;, color = &#39;coral&#39;)+
-  labs(title = &quot;Histogram of Arrival Delay&quot;,
+  geom_histogram(fill = &#39;skyblue&#39;, color = &#39;black&#39;)+
+  labs(title = &quot;Distribution of Arrival Delay&quot;,
        x = &quot;Arrival Delay (minutes)&quot;,
        y = &quot;Frequency&quot;)
 
-dd_hist</code></pre>
+origin_delay = df_2013 |&gt; 
+  mutate(
+    arrival_type = ifelse(arr_delay &lt;= 0, &quot;on time&quot;, &quot;delayed&quot;)) |&gt; 
+  ggplot(aes(x = origin, fill = arrival_type)) +
+    geom_bar()+
+    scale_fill_brewer(palette = &quot;Set3&quot;) + 
+    labs(title = &quot;Arrival Status Depatured from NYC Airports&quot;,
+         x = &quot;Origin&quot;,
+         y = &quot;Counts&quot;)
+
+# Calculate average arrival delay by destination
+avg_arr_delay_by_dest &lt;- df_2013 %&gt;%
+  group_by(dest) %&gt;%
+  summarize(avg_arr_delay_dest = mean(arr_delay, na.rm = TRUE)) %&gt;%
+  arrange(desc(avg_arr_delay_dest)) %&gt;%
+  head(6)
+
+# Select only the top 6 destinations
+top_destinations &lt;- avg_arr_delay_by_dest$dest
+
+# Filter the data for the top 6 destinations
+filtered_data &lt;- df_2013 %&gt;% filter(dest %in% top_destinations)
+
+# Create a boxplot for the top 6 destinations
+top6_dest = 
+  ggplot(filtered_data, aes(x = reorder(dest, -arr_delay), y = arr_delay, fill = dest)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = &quot;Set3&quot;) +
+  labs(title = &quot;Arrival Delay for Top 6 Destinations&quot;,
+       x = &quot;Destination&quot;,
+       y = &quot;Arrival Delay (minutes)&quot;)
+
+
+dd_hist | origin_delay / top6_dest</code></pre>
 <p><img src="EDA_files/figure-html/delay_summary-1.png" width="90%" /></p>
+<pre class="r"><code>df_2013 |&gt; 
+  summarise(min_delay = min(arr_delay),
+            avg_delay = mean(arr_delay),
+            median_delay = median(arr_delay),
+            max_delay = max(arr_delay)
+            ) |&gt;
+  knitr::kable(
+    digits = 3,
+    col.names = c(&quot;Min Delay Time (Minutes)&quot;,&quot;Average Delay Time (Minutes)&quot;, &quot;Median Delay Time (Minutes)&quot;, 
+                  &quot;Max Delay Time (Minutes)&quot;)
+    )</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="23%" />
+<col width="27%" />
+<col width="26%" />
+<col width="23%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">Min Delay Time (Minutes)</th>
+<th align="right">Average Delay Time (Minutes)</th>
+<th align="right">Median Delay Time (Minutes)</th>
+<th align="right">Max Delay Time (Minutes)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-74</td>
+<td align="right">7.287</td>
+<td align="right">-4</td>
+<td align="right">783</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>df_2013 |&gt; 
+  mutate(
+    arrival_type = ifelse(arr_delay &lt;= 0, &quot;on time&quot;, &quot;delayed&quot;)) |&gt; 
+  group_by(arrival_type) |&gt; 
+  summarise(count = n(),
+            average_delay_time = mean(arr_delay)) |&gt; 
+  knitr::kable(
+    digits = 3,
+    col.names = c(&quot;Arrival Type&quot;, &quot;Count&quot;, &quot;Average Delay Time (minutes)&quot;)
+    )</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Arrival Type</th>
+<th align="right">Count</th>
+<th align="right">Average Delay Time (minutes)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">delayed</td>
+<td align="right">30584</td>
+<td align="right">38.163</td>
+</tr>
+<tr class="even">
+<td align="left">on time</td>
+<td align="right">42150</td>
+<td align="right">-15.117</td>
+</tr>
+</tbody>
+</table>
+<p>The overall distribution of arrival delay was highly skewed to the
+right, with the average delay time 7.28 minutes. Based on the barplot of
+arrival delay grouped by origins, we found that EWR had the highest
+portion of delays in respect to its total flights, and JFK had the the
+lowest number of delays.Based on the boxplot displaying average time of
+arrival delay, we did not perceive any major differences regarding
+arrival delay time under the top 6 destinations.Approximately 58% of
+records (n=42,150) in the dataset were reported as on-time, and among
+them, the average time in earlier arrival was 15 minutes. On the
+contrary, in the delay group, the delay time was calculated to be 38
+minutes on average.</p>
 </div>
 <div id="correlation-plot" class="section level2">
 <h2>Correlation Plot</h2>
@@ -400,172 +611,19 @@ df_corr = df_2013 |&gt;
   select_if( is.numeric)
 corrplot(cor(df_corr), type=&quot;upper&quot;, order=&quot;hclust&quot;,
          col=brewer.pal(n=8, name=&quot;RdYlBu&quot;))</code></pre>
-<p><img src="EDA_files/figure-html/unnamed-chunk-1-1.png" width="90%" />
-Some highly correlated pair of features such as <code>wind_speed</code>
-and <code>precip</code>, and <code>air_time</code> and
-<code>distance</code>. Thus, in the modeling process, we will only keep
-one variable for each pair.</p>
-</div>
-<div id="arrival-delay-by-destination" class="section level2">
-<h2>Arrival delay by Destination</h2>
-<pre class="r"><code># Calculate average arrival delay by destination
-avg_arr_delay_by_dest &lt;- df_2013 %&gt;%
-  group_by(dest) %&gt;%
-  summarize(avg_arr_delay_dest = mean(arr_delay, na.rm = TRUE)) %&gt;%
-  arrange(desc(avg_arr_delay_dest)) %&gt;%
-  head(10)
-
-# Select only the top 6 destinations
-top_destinations &lt;- avg_arr_delay_by_dest$dest
-
-# Filter the data for the top 6 destinations
-filtered_data &lt;- df_2013 %&gt;% filter(dest %in% top_destinations)
-
-# Create a boxplot for the top 6 destinations
-top10_dest = 
-  ggplot(filtered_data, aes(x = reorder(dest, -arr_delay), y = arr_delay, fill = dest)) +
-  geom_boxplot() +
-  scale_fill_brewer(palette = &quot;Set3&quot;) +
-  labs(title = &quot;Boxplot of Arrival Delay for Top 6 Destinations&quot;,
-       x = &quot;Destination&quot;,
-       y = &quot;Arrival Delay (minutes)&quot;)
-
- top10_dest</code></pre>
-<p><img src="EDA_files/figure-html/plot_dest_delay-1.png" width="90%" /></p>
-</div>
-<div id="arrival-delay-by-carriers" class="section level2">
-<h2>Arrival delay by carriers</h2>
-<pre class="r"><code>df_2013 |&gt; 
-  group_by(carrier) |&gt; 
-  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
-  summarise(delay_count = sum(delay_count)) |&gt; 
-  ggplot(aes(x = carrier,
-            y = delay_count)) +
-  geom_bar(stat = &quot;identity&quot;,  fill = viridis(16)) +
-  labs(title = &quot;Number of Delays for Each Carrier&quot;, 
-        x = &quot;Carrier&quot;,
-        y = &quot;Total Number of Delays&quot;)</code></pre>
-<p><img src="EDA_files/figure-html/carrier_delay-1.png" width="90%" /></p>
-</div>
-<div id="arrival-delay-by-month" class="section level2">
-<h2>Arrival Delay by Month</h2>
-<pre class="r"><code>df_2013 |&gt; 
-  group_by(month) |&gt; 
-  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
-  summarise(delay_count = sum(delay_count)) |&gt; 
-  ggplot(aes(x = month,
-            y = delay_count)) +
-  geom_bar(stat = &quot;identity&quot;,  fill = viridis(12)) +
-  labs(title = &quot;Number of Delays for Each Month&quot;, 
-        x = &quot;Month&quot;,
-        y = &quot;Total Number of Delays&quot;)</code></pre>
-<p><img src="EDA_files/figure-html/month_delay-1.png" width="90%" /></p>
-<p>Months <code>Mar</code> and <code>Apr</code> appear to have the
-highest number of delays, and the lowest total number of delays occur in
-September.</p>
-</div>
-<div id="arrival-delay-weekday" class="section level2">
-<h2>Arrival Delay &amp; Weekday</h2>
-<pre class="r"><code>df_2013_weekday = read_csv(&quot;data/merge_data_2013.csv&quot;) |&gt; 
-  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0),
-         arrival_date = paste(year,&quot;-&quot;,month,&quot;-&quot;,day, sep = &quot;&quot;)
-         ) |&gt;
-  mutate(week_date = weekdays(date(arrival_date)))
-
-df_2013_weekday |&gt; 
-  group_by(week_date) |&gt; 
-  summarise(delay_count = sum(delay_count)) |&gt; 
-  ggplot(aes(x = week_date,
-            y = delay_count)) +
-  geom_bar(stat = &quot;identity&quot;,  fill = viridis(7)) +
-  labs(title = &quot;Number of Delays for Each Carrier&quot;, 
-        x = &quot;Weekday&quot;,
-        y = &quot;Total Number of Delays Vs. Weekday&quot;)</code></pre>
 <p><img src="EDA_files/figure-html/unnamed-chunk-2-1.png" width="90%" /></p>
+<p>The correlation heatmap plot depicted some highly correlated pair of
+features such as <code>wind_speed</code> and <code>precip</code>, and
+<code>air_time</code> and <code>distance</code>. Thus, in the modeling
+process, we will only keep one variable for each pair to avoid the
+multicollinearity issue. In this case, we removed features
+<code>wind speed</code> and <code>distance</code> when constructing the
+model.</p>
 </div>
-<div
-id="arrival-delay-hour-morning-5-12-afternoon-12-17-evening-17-21-late_night-21-5"
-class="section level2">
-<h2>Arrival Delay &amp; Hour (morning (5-12), afternoon (12-17), evening
-(17-21), late_night (21-5))</h2>
-<pre class="r"><code>df_2013 |&gt; 
-  mutate(hour = cut(hour, 
-                    breaks = c(-Inf, 5, 12, 17, 21, Inf),
-                    labels = c(&quot;Late Night&quot;, &quot;Morning&quot;, &quot;Afternoon&quot;, &quot;Evening&quot;, &quot;Late Night&quot;),
-                    include.lowest = TRUE
-                    )) |&gt;
-  group_by(hour) |&gt;
-  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
-  summarise(delay_count = sum(delay_count),
-            avg_delay = mean(arr_delay)) |&gt; 
-  ggplot(aes(x = hour,
-            y = delay_count, group=1, color=avg_delay)) +
-  geom_point() +
-  geom_line() +
-  labs(title = &quot;Number of Delays Across Parts of Day&quot;,
-       x = &quot;Parts of Day&quot;,
-       y = &quot;Total Number of Delays&quot;)</code></pre>
-<p><img src="EDA_files/figure-html/unnamed-chunk-3-1.png" width="90%" /></p>
-</div>
-<div id="on-time-arrival-rate-for-nyc-airports" class="section level2">
-<h2>On time arrival rate for NYC airports</h2>
-<p>Suppose a flight that is delayed for less than 5 minutes is basically
-“on time”. Assume we onsider any flight delayed for 5 minutes of more to
-be “delayed”</p>
-<pre class="r"><code>df_2013 &lt;- 
-  df_2013 %&gt;% 
-  mutate(
-    ontime = arr_delay &lt; 5
-    )
-
-df_2013 &lt;- 
-  df_2013 %&gt;%
-  mutate(
-    arr_type = ifelse(arr_delay &lt; 5, &quot;on time&quot;, &quot;delayed&quot;)
-    )
-
-df_2013 %&gt;% 
-  group_by(origin) %&gt;% 
-  summarise(ontime_prop = sum(ontime == TRUE) / n()) %&gt;% 
-  arrange(desc(ontime_prop)) %&gt;% 
-  knitr::kable(
-    digits = 3,
-    col.names = c(&quot;Origin&quot;, &quot;On-time Proportion&quot;)
-  )</code></pre>
-<table>
-<thead>
-<tr class="header">
-<th align="left">Origin</th>
-<th align="right">On-time Proportion</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">LGA</td>
-<td align="right">0.661</td>
-</tr>
-<tr class="even">
-<td align="left">JFK</td>
-<td align="right">0.636</td>
-</tr>
-<tr class="odd">
-<td align="left">EWR</td>
-<td align="right">0.625</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>ggplot(data = df_2013, aes(x = origin, fill = arr_type)) +
-  geom_bar()+
-  scale_fill_brewer(palette = &quot;Set3&quot;) + 
-  labs(title = &quot;Bar Plot of On-time Arrival for NYC Airports&quot;,
-       x = &quot;Origin&quot;,
-       y = &quot;Count of on-time arrival&quot;)</code></pre>
-<p><img src="EDA_files/figure-html/on_time_arr-1.png" width="90%" /></p>
-<p>The plot shows that LGA airport has the best on time arrival rate and
-EWR airport has the worst.</p>
-</div>
-<div id="pressure" class="section level2">
-<h2>Pressure</h2>
+<div id="arrival-delay-weather-factors" class="section level2">
+<h2>Arrival Delay &amp; Weather Factors</h2>
+<div id="pressure" class="section level3">
+<h3>Pressure</h3>
 <pre class="r"><code># Average pressure against average arr_delay by month
 pressure_delay_date = 
   ggplot(average_delay_by_date, aes(x = avg_pressure, y = avg_arr_delay)) +
@@ -583,8 +641,8 @@ correlation between pressure (mmhg) and arrival delay in minutes. While
 the p-value is significantly small, it may be driven by a large sample
 size (n=72,734).</p>
 </div>
-<div id="visibility" class="section level2">
-<h2>Visibility</h2>
+<div id="visibility" class="section level3">
+<h3>Visibility</h3>
 <pre class="r"><code>df_2013 |&gt; 
   group_by(visib) |&gt; 
   mutate(count_delay = if_else(arr_delay&gt;0 , 1, 0)) |&gt; 
@@ -596,21 +654,187 @@ size (n=72,734).</p>
    geom_point() +
   labs(title = &quot;Arrival Delay Vs. Visibility&quot;,
       x = &quot;Visibility&quot;,
-      y = &quot;Average of Delay&quot;) </code></pre>
+      y = &quot;Average of Arrival Delay Time (Minutes)&quot;) </code></pre>
 <p><img src="EDA_files/figure-html/visib-1.png" width="90%" /></p>
+<p>Based on the graph, it appeared that the incremental of visibility
+did not linearly correlate with the reduction in the number of delays.
+In the highest visibility 10, we perceived the highest number of delays.
+There was no major difference in the number of delays in visibility
+ranging from 0 to 9. However, we observed that visibility negatively
+correlated with average delay time in minutes.</p>
 </div>
-<div id="wind" class="section level2">
-<h2>Wind</h2>
-<pre class="r"><code>wind_dir_delay_date</code></pre>
-<p><img src="EDA_files/figure-html/plot_wind-1.png" width="90%" /></p>
-<pre class="r"><code>wind_speed_delay_date</code></pre>
-<p><img src="EDA_files/figure-html/plot_wind-2.png" width="90%" /></p>
-<pre class="r"><code>wind_gust_delay_date</code></pre>
-<p><img src="EDA_files/figure-html/plot_wind-3.png" width="90%" /></p>
+<div id="wind" class="section level3">
+<h3>Wind</h3>
+<pre class="r"><code># Average Wind Direction against average arr_delay by date
+wind_dir_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  guides(color = &#39;none&#39;) +  
+  labs(title = &quot;Avg Wind Direction VS Arrival Delay&quot;,
+       x = &quot;Avg Daily Wind Direction&quot;,
+       y = &quot;Avg arr_delay&quot;)
+# Average wind_gust against average arr_delay by date
+wind_gust_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  labs(title = &quot;Avg Wind Gust VS Arrival Delay&quot;,
+       x = &quot;Avg Daily Wind Gust&quot;,
+       y = &quot;Avg arr_delay&quot;)
+
+# Average wind_speed against average arr_delay by date
+wind_speed_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
+  geom_point(size = 3) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  guides(color = &#39;none&#39;) +  
+  labs(title = &quot;Avg Wind Speed VS Arrival Delay&quot;,
+       x = &quot;Avg Daily Wind Speed&quot;,
+       y = &quot;Avg arr_delay&quot;)
+
+
+(wind_dir_delay_date | wind_speed_delay_date) / wind_gust_delay_date</code></pre>
+<p><img src="EDA_files/figure-html/plot_weather_wind-1.png" width="90%" /></p>
+</div>
+</div>
+<div id="arrival-delay-carriers-seasonal-and-temporal-factors"
+class="section level2">
+<h2>Arrival Delay &amp; Carriers, Seasonal and Temporal Factors</h2>
+<pre class="r"><code>carrier_plot = df_2013 |&gt; 
+  group_by(carrier) |&gt; 
+  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
+  summarise(delay_count = sum(delay_count)) |&gt; 
+  ggplot(aes(x = carrier,
+            y = delay_count)) +
+  geom_bar(stat = &quot;identity&quot;,  fill = viridis(16)) +
+  labs(title = &quot;Number of Delays for Each Carrier&quot;, 
+        x = &quot;Carrier&quot;,
+        y = &quot;Total Number of Delays&quot;)
+
+
+month_plot = df_2013 |&gt; 
+  group_by(month) |&gt; 
+  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
+  summarise(delay_count = sum(delay_count)) |&gt; 
+  ggplot(aes(x = month,
+            y = delay_count, group=1)) +
+  geom_point(color=&quot;#0aa2fa&quot;) +
+  geom_line(color=&quot;#0aa2fa&quot;) +
+  labs(title = &quot;Number of Delays for Each Month&quot;, 
+        x = &quot;Month&quot;,
+        y = &quot;Total Number of Delays&quot;)
+
+carrier_plot | month_plot</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-3-1.png" width="90%" /></p>
+<p>The carrier <code>EV</code> was shown to have the highest number of
+delays, followed by carrier <code>B6</code>. The number of delays for
+carrier <code>HA</code> was found to be the lowest across all carriers.
+Months such as March and April appeared to have the relatively high
+number of delays, and the lowest total number of delays occurred in
+September.</p>
+<pre class="r"><code>df_2013_weekday = read_csv(&quot;data/merge_data_2013.csv&quot;) |&gt; 
+  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0),
+         arrival_date = paste(year,&quot;-&quot;,month,&quot;-&quot;,day, sep = &quot;&quot;)
+         ) |&gt;
+  mutate(week_date = weekdays(date(arrival_date)),
+          week_date = factor(week_date, 
+                             levels = c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, 
+                                        &quot;Thursday&quot;, &quot;Friday&quot;, &quot;Saturday&quot;,
+                                        &quot;Sunday&quot;))
+  )
+
+weekday_plot = df_2013_weekday |&gt; 
+  group_by(week_date) |&gt; 
+  summarise(delay_count = sum(delay_count)) |&gt; 
+  ggplot(aes(x = week_date,
+            y = delay_count, group=1)) +
+    geom_point(color=&quot;#6f98d1&quot;) +
+  geom_line(color=&quot;#6f98d1&quot;) +
+  labs(title = &quot;Number of Delays Vs. Weekday&quot;, 
+        x = &quot;Weekday&quot;,
+        y = &quot;Total Number of Delays&quot;)
+
+weekday_plot_delay = df_2013_weekday |&gt; 
+  group_by(week_date) |&gt; 
+  summarise(avg_delay = mean(arr_delay)) |&gt; 
+  ggplot(aes(x = week_date,
+            y = avg_delay, group=1)) +
+    geom_point(color=&quot;#6f98d1&quot;) +
+  geom_line(color=&quot;#6f98d1&quot;) +
+  labs(title = &quot;Average Time of Arrival Delays (minutes) Vs. Weekday&quot;, 
+        x = &quot;Weekday&quot;,
+        y = &quot;Average Time of Arrival Delays (minutes)&quot;)
+
+
+weekday_plot /weekday_plot_delay</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-4-1.png" width="90%" /></p>
+<p>An increasing trend in the number of delays was perceived from Monday
+to Thursday, followed by a decline on Friday and Saturday. Based on the
+figures, Saturday had the lowest number of delays and average time of
+arrival delays. It was also noted that Thursday was found to have the
+highest number of delays and average time of arrival delays in
+minutes.</p>
+<pre class="r"><code>part_day_plot = df_2013 |&gt; 
+  mutate(hour = cut(hour, 
+                    breaks = c(-Inf, 5, 12, 17, 21, Inf),
+                    labels = c(&quot;Late Night&quot;, &quot;Morning&quot;, &quot;Afternoon&quot;, &quot;Evening&quot;, &quot;Late Night&quot;),
+                    include.lowest = TRUE
+                    )) |&gt;
+  group_by(hour) |&gt;
+  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
+  summarise(delay_count = sum(delay_count),
+            avg_delay = mean(arr_delay)) |&gt; 
+  ggplot(aes(x = hour,
+            y = delay_count, group=1)) +
+  geom_point(color=&quot;#eb8f2d&quot;) +
+  geom_line(color=&quot;#eb8f2d&quot;) +
+  labs(title = &quot;Number of Delays Vs. Daytime&quot;,
+       x = &quot;Daytime&quot;,
+       y = &quot;Total Number of Delays&quot;)
+
+
+part_day_plot_delay = df_2013 |&gt; 
+  mutate(hour = cut(hour, 
+                    breaks = c(-Inf, 5, 12, 17, 21, Inf),
+                    labels = c(&quot;Late Night&quot;, &quot;Morning&quot;, &quot;Afternoon&quot;, &quot;Evening&quot;, &quot;Late Night&quot;),
+                    include.lowest = TRUE
+                    )) |&gt;
+  group_by(hour) |&gt;
+  mutate(delay_count = if_else(arr_delay &gt;0 , 1, 0)) |&gt; 
+   summarise(avg_delay = mean(arr_delay)) |&gt; 
+  ggplot(aes(x = hour,
+            y = avg_delay, group=1)) +
+  geom_point(color=&quot;#eb8f2d&quot;) +
+  geom_line(color=&quot;#eb8f2d&quot;) +
+  labs(title = &quot;Average Time of Arrival Delay (minutes) Vs. Daytime&quot;,
+       x = &quot;Daytime&quot;,
+       y = &quot;Average Arrival Delays (minutes)&quot;)
+
+part_day_plot / part_day_plot_delay</code></pre>
+<p><img src="EDA_files/figure-html/unnamed-chunk-5-1.png" width="90%" /></p>
+<p>Furthermore, we further visualized the changes of number of delays
+and daytime divided into <code>Late Night</code>, <code>Morning</code>,
+<code>Afternoon</code>, <code>Evening</code>. The number of arrival
+delays was increased from time during laye night to afternoon, dropping
+during the evening. We found a largest number of delays during
+afternoon, with the average time delay of 9 minutes.</p>
+</div>
+<div id="insights-from-visualization" class="section level2">
+<h2>Insights from Visualization</h2>
+<p>Based on above visualizations, we anticipated weather factors such as
+pressure,visibility and wind conditions can be beneficial in predicting
+flight delay task. Additionally, other features such as information
+about flight carrier and temporarily are believed to helpful in such
+prediction task as well. Thus, in the subsequent sections, we would
+further quantity their correlations by leveraging multiple linear
+regression.</p>
 </div>
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -648,6 +872,35 @@ $(document).ready(function () {
 });
 </script>
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
