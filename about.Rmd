@@ -1,5 +1,5 @@
 ---
-title: "About the Project"
+title: <center> Our Team
 output: 
   html_document:
     toc: true
@@ -7,5 +7,26 @@ output:
     theme: journal
 ---
 
+**Fangyi Chen** <br>
+UID: fc2718 <br>
+[LinkedIn](https://www.linkedin.com/in/fangyi-chen-no10118/) <br>
 
 
+**Jiying Wang** <br>
+UID: jw4489 <br>
+[LinkedIn](www.linkedin.com/in/jiying-wang-82694a213) <br>
+
+
+**Yumeng Qi** <br>
+UID: yq2378 <br>
+[LinkedIn](https://www.linkedin.com/in/yumeng-qi-9a7232290/) <br>
+
+
+**Si Chen** <br>
+UID: sc5126 <br>
+[GitHub](https://github.com/Chance27) <br>
+
+
+**Yuxin Yin** <br>
+UID: yy3439 <br>
+[LinkedIn](https://www.linkedin.com/in/irene-y-445745299/) <br>
