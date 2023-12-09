@@ -546,6 +546,7 @@ We then conducted a grid search was conducted over a range of penalty values and
 
 ![Finding the Best Hyperparameter](image/best_hyperparameter.png){width=45%}
 
+<br>
 After that, we trained the logistic regression model with the optimal hyperparameters on the entire dataset, and examined coefficients to identify the top 20 predictors. 
 
 ### Random Forest Regression
@@ -560,7 +561,8 @@ One of the most important steps was comparing the performance of the random fore
 
 ![Comparison between Two Models](image/rf.png){width=45%}
 
-By looking at the graph, we could clearly find that the random forest model performs better that logistic regression model.
+<br>
+By looking at the graph, we could clearly find that the random forest model performs better than the logistic regression model.
 
 Finally, we trained the final random forest model with the optimal hyperparameters and evaluated its performance. As we did for logistic regression model, we also visualized the top 20 predictors to highlight the feature importance of the model.
 
