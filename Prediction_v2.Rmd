@@ -17,7 +17,8 @@ For our project, we aim to predict the plane delay. We split the data from 2013 
 ```{r libraries, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
-                      fig.align = 'center')
+                      fig.align = 'center',
+                      message = FALSE)
 
 library(tidyverse)
 library(tidymodels)
@@ -263,6 +264,8 @@ On the contrary of the lasso regression, the random forest plot show that contin
 
 # Prediction on 2017 dataset
 
+We further employ the well-trained models on the 2017 dataset. Notably, the Random Forest model exhibited superior performance across a majority of evaluation metrics. 
+
 ```{r Prediction on 2017}
 # pass on the recipe
 df_2017_rf = rf_recipe %>%
@@ -278,7 +281,7 @@ rf_fit <-
 pred_class <- predict(rf_fit,
                       new_data = df_2017_rf,
                       type = "prob")
-roc(df_2017_rf$if_delay, pred_class$.pred_0)$auc
+#roc(df_2017_rf$if_delay, pred_class$.pred_0)$auc
 predicted_class <- ifelse(pred_class$.pred_0 >= 0.5, 0, 1)
 predicted_class = factor(predicted_class)
 # 创建混淆矩阵
@@ -298,7 +301,7 @@ pred_class <- predict(lr_fit,
                       new_data = df_2017_lr,
                       type = "prob")
 
-roc(df_2017_lr$if_delay, pred_class$.pred_0)$auc
+#roc(df_2017_lr$if_delay, pred_class$.pred_0)$auc
 predicted_class <- ifelse(pred_class$.pred_0 >= 0.5, 0, 1)
 predicted_class = factor(predicted_class)
 # 创建混淆矩阵
@@ -311,7 +314,7 @@ rownames(conf_matrix) = c("Logistic","Random Forrest")
 #stargazer(conf_matrix, summary=FALSE, rownames=TRUE,type = 'html')
 ```
 
-<table style="text-align:center"><tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>Sensitivity</td><td>Specificity</td><td>Pos Pred Value</td><td>Neg Pred Value</td><td>Precision</td><td>Recall</td><td>F1</td><td>Prevalence</td><td>Detection Rate</td><td>Detection Prevalence</td><td>Balanced Accuracy</td></tr>
-<tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Logistic</td><td>0.880</td><td>0.470</td><td>0.759</td><td>0.673</td><td>0.759</td><td>0.880</td><td>0.815</td><td>0.655</td><td>0.577</td><td>0.760</td><td>0.675</td></tr>
-<tr><td style="text-align:left">Random Forrest</td><td>0.970</td><td>0.702</td><td>0.861</td><td>0.925</td><td>0.861</td><td>0.970</td><td>0.912</td><td>0.655</td><td>0.636</td><td>0.738</td><td>0.836</td></tr>
+<table style="text-align:center"><tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>Sensitivity</td><td>Specificity</td><td>PPV </td><td>NPV</td><td>Precision</td><td>Recall</td><td>F1</td><td>Prevalence</td><td>Detection Rate</td><td>Detection Prevalence</td><td>Balanced Accuracy</td></tr>
+<tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">LR</td><td>0.880</td><td>0.470</td><td>0.759</td><td>0.673</td><td>0.759</td><td>0.880</td><td>0.815</td><td>0.655</td><td>0.577</td><td>0.760</td><td>0.675</td></tr>
+<tr><td style="text-align:left">RF</td><td>0.970</td><td>0.702</td><td>0.861</td><td>0.925</td><td>0.861</td><td>0.970</td><td>0.912</td><td>0.655</td><td>0.636</td><td>0.738</td><td>0.836</td></tr>
 <tr><td colspan="12" style="border-bottom: 1px solid black"></td></tr></table>

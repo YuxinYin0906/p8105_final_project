@@ -58,6 +58,10 @@ The weather condition and flight information would be merged based on the `origi
 library(tidyverse)
 library(dplyr)
 library("nycflights13")
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      fig.align = 'center',
+                      message = FALSE)
 flights_2013 = flights |> 
   janitor::clean_names()
 weather_2013 = weather |> 
@@ -154,7 +158,7 @@ The final clean column names and descriptions:
 
 
 
-## Exploratory analysis
+## Exploratory Analysis
 
 To provide an overall view of the distribution in arrival delay (in minutes), we created a histogram for the arrival delay in 2013, a barplot showing the arrival status categorized by three NYC departure airports (`LGA`, `JFK`, `EWR`) and a boxplot below displaying the top 6 average arrival delay grouped by destinations. Additionally, we then visualized the correlation between arrival delay and weather features (e.g.,`pressure`, `wind`, `visibility`, etc.) and some other external factors including `flight carriers`, `month` and specific datetime features. 
 
@@ -540,24 +544,49 @@ Furthermore, we further visualized the changes of number of delays and daytime d
 ### Insights from Visualization
 Based on above visualizations, we anticipated weather factors such as pressure,visibility and wind conditions can be beneficial in predicting flight delay task. Additionally, other features such as information about flight carrier and temporal characteristics are believed to helpful in such prediction task as well. Thus, in the subsequent sections, we would further quantity their correlations by leveraging multiple linear regression.
 
-## Additional analysis
+## Additional Analysis
 
-### Model Selection
+### Multiple Linear Regression
+
+During the exploratory data analysis (EDA) phase, we identified highly correlated variable pairs. The presence of such pairs indicates a potential for one variable to essentially substitute another in the model, leading to multicollinearity issues. In response to this correlation finding, we assessed each variable within these pairs based on their unique values. Our criterion was to retain the variable with a higher number of unique values, signifying a broader range of information.
+
+As a result, we opted to exclude `wind_speed` and `distance` from the analysis. This decision aims to improve the model's stability and interpretability by addressing multicollinearity issues.
+
+|highly correlated variables  | wind_gust | wind_speed | air_time | distance |
+|---|-----------|------------|----------|----------|
+|unique cnt|33 |30|462|177|
+
+#### Stepwise Regression
+
+In the linear model context, we've taken crucial preprocessing steps, including standardizing variables, applying one-hot encoding for categorical variables, and removing highly correlated pairs. These actions were taken to improve the model's stability and interpretability.
+
+With increased confidence in the processed dataset, we proceeded with stepwise regression. This method systematically refines the model by iteratively selecting or removing variables based on criteria like the Akaike Information Criterion (AIC). The aim was to precisely capture relationships between flight delay time and various flight information parameters.
+
+By employing stepwise regression, our goal was to ensure that the final model incorporates the most relevant and significant predictors. This approach provides a streamlined and statistically robust representation of the intricate relationships within the data.
+
+The plot below unveils insights into the top 20 estimated values of the predictors. Strikingly, these top 20 predictors exclusively consist of destination dummy variables. Notably, only Daniel K. Inouye International Airport (HNL) stands out with negative estimates, implying that flights to HNL are less likely to experience delays—a delightful discovery. Perhaps both visitors and flight crews couldn't wait to join the beach!
+
+For a more comprehensive overview of the Multiple Linear Regression (MLR) model, please refer to the [Analysis-MLR page](https://yuxinyin0906.github.io/p8105_final_project/MLR.html).In brief, the Adjusted 
+$R^2$ stands at a mere 0.110, suggesting that the linear model falls short in adequately addressing delay-related issues.
+
+![Estimates of MLR](image/mlr_estimate.png){width=80%}
+
+### Machine Learning Methods
 
 After the initial acquisition of insights, we wanted to further analyze the data and build predictive models to predict whether a flight is delayed or not based on highly correlated variables. In order to reach the goal, we chose two models, lasso regression and random forest as they bring different strengths to the table. 
 
-### Lasso Regression
+#### Lasso Regression
 
 Using the `logistic_reg` function with hyperparameter tuning for the penalty and mixture parameters, we defined the logistic regression model. The glmnet engine was set up to be used by the model. Feature preprocessing included managing data variables, eliminating unnecessary columns, creating dummy variables for categorical predictors, removing zero-variance predictors, and normalizing all predictors.  <br>
 <br>
 We then conducted a grid search was conducted over a range of penalty values and saved the results for further analysis. The best-performing hyperparameters were selected based on the highest mean Area under the ROC Curve (AUC). By highlighting the penalty value corresponding to the peak AUC, we visualized the AUC-penalty relationship.
 
-![Finding the Best Hyperparameter](image/best_hyperparameter.png){width=45%}
+![Finding the Best Hyperparameter](image/best_hyperparameter.png){width=80%}
 
 <br>
 After that, we trained the logistic regression model with the optimal hyperparameters on the entire dataset, and examined coefficients to identify the top 20 predictors. 
 
-### Random Forest Regression
+#### Random Forest Regression
 
 The first step we took was detecting and storing the number of available CPU cores in the variable `cores`. This information is essential for optimizing the performance of parallelized computations. <br>
 <br>
@@ -567,7 +596,7 @@ We used the area under the ROC curve metric to assess the model once hyperparame
 <br>
 One of the most important steps was comparing the performance of the random forest model with the previously developed logistic regression model. We visualized sensitivity and specificity metrics on a ROC curve for both models using the training set. 
 
-![Comparison between Two Models](image/rf.png){width=45%}
+![Comparison between Two Models](image/rf.png){width=80%}
 
 <br>
 By looking at the graph, we could clearly find that the random forest model performs better than the logistic regression model.

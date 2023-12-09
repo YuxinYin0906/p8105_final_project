@@ -12,7 +12,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
-                      fig.align = 'center')
+                      fig.align = 'center',
+                      message = FALSE)
 
 library(tidyverse)
 library(tidymodels)
@@ -87,7 +88,7 @@ By leveraging stepwise regression, we aimed to ensure that the final model inclu
 
 ## Variable Estimation
 
-The plot below unveils insights into the top 20 estimated values of the predictors. Strikingly, these top 20 predictors exclusively consist of destination dummy variables. Notably, only Daniel K. Inouye International Airport (HNL) stands out with negative estimates, implying that flights to HNL are less likely to experience delays—a delightful discovery. Perhaps both visitors and flight crews couldn't wait to join the beach
+The plot below unveils insights into the top 20 estimated values of the predictors. Strikingly, these top 20 predictors exclusively consist of destination dummy variables. Notably, only Daniel K. Inouye International Airport (HNL) stands out with negative estimates, implying that flights to HNL are less likely to experience delays—a delightful discovery. Perhaps both visitors and flight crews couldn't wait to join the beach!
 
 
 ```{r AIC, include = FALSE}

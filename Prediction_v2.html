@@ -335,7 +335,9 @@ div.tocify {
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Us</li>
+    <li>
+      <a href="about.html">Us</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -499,15 +501,8 @@ lr_final &lt;- readRDS(&quot;Prediction_Env/lr_final.rds&quot;)
 coeff &lt;- tidy(lr_final) %&gt;% 
   arrange(desc(abs(estimate))) %&gt;% 
   filter(term != &#39;(Intercept)&#39;) %&gt;% 
-  slice(1:20)</code></pre>
-<pre><code>## Loading required package: Matrix</code></pre>
-<pre><code>## 
-## Attaching package: &#39;Matrix&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
-## 
-##     expand, pack, unpack</code></pre>
-<pre><code>## Loaded glmnet 4.1-8</code></pre>
-<pre class="r"><code>ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
+  slice(1:20)
+ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) + 
    geom_col(fill = &#39;skyblue&#39;) + coord_flip()+
   geom_text(aes(label = round(estimate,2)))+
   theme_minimal()+
@@ -609,6 +604,9 @@ categorical variables.</p>
 </div>
 <div id="prediction-on-2017-dataset" class="section level1">
 <h1>Prediction on 2017 dataset</h1>
+<p>We further employ the well-trained models on the 2017 dataset.
+Notably, the Random Forest model exhibited superior performance across a
+majority of evaluation metrics.</p>
 <pre class="r"><code># pass on the recipe
 df_2017_rf = rf_recipe %&gt;%
   prep() %&gt;%
@@ -623,11 +621,8 @@ rf_fit &lt;-
 pred_class &lt;- predict(rf_fit,
                       new_data = df_2017_rf,
                       type = &quot;prob&quot;)
-roc(df_2017_rf$if_delay, pred_class$.pred_0)$auc</code></pre>
-<pre><code>## Setting levels: control = 0, case = 1</code></pre>
-<pre><code>## Setting direction: controls &gt; cases</code></pre>
-<pre><code>## Area under the curve: 0.9697</code></pre>
-<pre class="r"><code>predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
+#roc(df_2017_rf$if_delay, pred_class$.pred_0)$auc
+predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
 predicted_class = factor(predicted_class)
 # 创建混淆矩阵
 conf_matrix_rf &lt;- confusionMatrix(data = predicted_class, reference = df_2017_rf$if_delay)
@@ -646,11 +641,8 @@ pred_class &lt;- predict(lr_fit,
                       new_data = df_2017_lr,
                       type = &quot;prob&quot;)
 
-roc(df_2017_lr$if_delay, pred_class$.pred_0)$auc</code></pre>
-<pre><code>## Setting levels: control = 0, case = 1
-## Setting direction: controls &gt; cases</code></pre>
-<pre><code>## Area under the curve: 0.7818</code></pre>
-<pre class="r"><code>predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
+#roc(df_2017_lr$if_delay, pred_class$.pred_0)$auc
+predicted_class &lt;- ifelse(pred_class$.pred_0 &gt;= 0.5, 0, 1)
 predicted_class = factor(predicted_class)
 # 创建混淆矩阵
 conf_matrix_lr &lt;- confusionMatrix(data = predicted_class, reference = df_2017_lr$if_delay)
@@ -675,10 +667,10 @@ Sensitivity
 Specificity
 </td>
 <td>
-Pos Pred Value
+PPV
 </td>
 <td>
-Neg Pred Value
+NPV
 </td>
 <td>
 Precision
@@ -708,7 +700,7 @@ Balanced Accuracy
 </tr>
 <tr>
 <td style="text-align:left">
-Logistic
+LR
 </td>
 <td>
 0.880
@@ -746,7 +738,7 @@ Logistic
 </tr>
 <tr>
 <td style="text-align:left">
-Random Forrest
+RF
 </td>
 <td>
 0.970

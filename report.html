@@ -483,6 +483,10 @@ values. .</p>
 <pre class="r"><code>library(tidyverse)
 library(dplyr)
 library(&quot;nycflights13&quot;)
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      fig.align = &#39;center&#39;,
+                      message = FALSE)
 flights_2013 = flights |&gt; 
   janitor::clean_names()
 weather_2013 = weather |&gt; 
@@ -577,7 +581,7 @@ miles</li>
 </ul>
 </div>
 <div id="exploratory-analysis" class="section level2">
-<h2>Exploratory analysis</h2>
+<h2>Exploratory Analysis</h2>
 <p>To provide an overall view of the distribution in arrival delay (in
 minutes), we created a histogram for the arrival delay in 2013, a
 barplot showing the arrival status categorized by three NYC departure
@@ -706,7 +710,7 @@ top6_dest =
 
 
 dd_hist | origin_delay / top6_dest</code></pre>
-<p><img src="report_files/figure-html/delay_summary-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/delay_summary-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>df_2013 |&gt; 
   summarise(min_delay = min(arr_delay),
             avg_delay = mean(arr_delay),
@@ -794,7 +798,7 @@ df_corr = df_2013 |&gt;
   select_if( is.numeric)
 corrplot(cor(df_corr), type=&quot;upper&quot;, order=&quot;hclust&quot;,
          col=brewer.pal(n=8, name=&quot;RdYlBu&quot;))</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-3-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>The correlation heatmap plot depicted some highly correlated pair of
 features such as <code>wind_speed</code> and <code>precip</code>, and
 <code>air_time</code> and <code>distance</code>. Thus, in the modeling
@@ -818,7 +822,7 @@ pressure_delay_date =
        y = &quot;Avg Arrival Delay (minutes)&quot;)
 
 pressure_delay_date</code></pre>
-<p><img src="report_files/figure-html/pressure_date-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/pressure_date-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>From the plot we could observe a trend that as pressure increased,
 the arrival delay time decreased. Since the trend seemed not very clear,
 we then calculated the correlation coefficient between the two
@@ -841,7 +845,7 @@ by a large sample size (n=72,734).</p>
   labs(title = &quot;Arrival Delay Vs. Visibility&quot;,
       x = &quot;Visibility&quot;,
       y = &quot;Average of Arrival Delay Time (Minutes)&quot;) </code></pre>
-<p><img src="report_files/figure-html/visib-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/visib-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Based on the graph, it appeared that the incremental of visibility
 did not linearly correlate with the reduction in the number of delays.
 In the highest visibility 10, we perceived the highest number of delays.
@@ -885,7 +889,7 @@ wind_speed_delay_date =
 
 
 (wind_dir_delay_date | wind_speed_delay_date) / wind_gust_delay_date</code></pre>
-<p><img src="report_files/figure-html/plot_weather_wind-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/plot_weather_wind-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>The three scatterplots with fitted lines here illustrated the
 relationship between wind features and arrival delay. We also calculated
 the correlation coefficients to confirm the trends we observed.
@@ -931,7 +935,7 @@ month_plot = df_2013 |&gt;
         y = &quot;Total Number of Delays&quot;)
 
 carrier_plot | month_plot</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-4-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>The carrier <code>EV</code> was shown to have the highest number of
 delays, followed by carrier <code>B6</code>. The number of delays for
 carrier <code>HA</code> was found to be the lowest across all carriers.
@@ -973,7 +977,7 @@ weekday_plot_delay = df_2013_weekday |&gt;
 
 
 weekday_plot /weekday_plot_delay</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-5-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>An increasing trend in the number of delays was perceived from Monday
 to Thursday, followed by a decline on Friday and Saturday. Based on the
 figures, Saturday had the lowest number of delays and average time of
@@ -1017,7 +1021,7 @@ part_day_plot_delay = df_2013 |&gt;
        y = &quot;Average Arrival Delays (minutes)&quot;)
 
 part_day_plot / part_day_plot_delay</code></pre>
-<p><img src="report_files/figure-html/unnamed-chunk-6-1.png" width="90%" /></p>
+<p><img src="report_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Furthermore, we further visualized the changes of number of delays
 and daytime divided into <code>Late Night</code>, <code>Morning</code>,
 <code>Afternoon</code>, <code>Evening</code>. The number of arrival
@@ -1037,17 +1041,94 @@ multiple linear regression.</p>
 </div>
 </div>
 <div id="additional-analysis" class="section level2">
-<h2>Additional analysis</h2>
-<div id="model-selection" class="section level3">
-<h3>Model Selection</h3>
+<h2>Additional Analysis</h2>
+<div id="multiple-linear-regression" class="section level3">
+<h3>Multiple Linear Regression</h3>
+<p>During the exploratory data analysis (EDA) phase, we identified
+highly correlated variable pairs. The presence of such pairs indicates a
+potential for one variable to essentially substitute another in the
+model, leading to multicollinearity issues. In response to this
+correlation finding, we assessed each variable within these pairs based
+on their unique values. Our criterion was to retain the variable with a
+higher number of unique values, signifying a broader range of
+information.</p>
+<p>As a result, we opted to exclude <code>wind_speed</code> and
+<code>distance</code> from the analysis. This decision aims to improve
+the model’s stability and interpretability by addressing
+multicollinearity issues.</p>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="23%" />
+<col width="26%" />
+<col width="21%" />
+<col width="21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>highly correlated variables</th>
+<th>wind_gust</th>
+<th>wind_speed</th>
+<th>air_time</th>
+<th>distance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>unique cnt</td>
+<td>33</td>
+<td>30</td>
+<td>462</td>
+<td>177</td>
+</tr>
+</tbody>
+</table>
+<div id="stepwise-regression" class="section level4">
+<h4>Stepwise Regression</h4>
+<p>In the linear model context, we’ve taken crucial preprocessing steps,
+including standardizing variables, applying one-hot encoding for
+categorical variables, and removing highly correlated pairs. These
+actions were taken to improve the model’s stability and
+interpretability.</p>
+<p>With increased confidence in the processed dataset, we proceeded with
+stepwise regression. This method systematically refines the model by
+iteratively selecting or removing variables based on criteria like the
+Akaike Information Criterion (AIC). The aim was to precisely capture
+relationships between flight delay time and various flight information
+parameters.</p>
+<p>By employing stepwise regression, our goal was to ensure that the
+final model incorporates the most relevant and significant predictors.
+This approach provides a streamlined and statistically robust
+representation of the intricate relationships within the data.</p>
+<p>The plot below unveils insights into the top 20 estimated values of
+the predictors. Strikingly, these top 20 predictors exclusively consist
+of destination dummy variables. Notably, only Daniel K. Inouye
+International Airport (HNL) stands out with negative estimates, implying
+that flights to HNL are less likely to experience delays—a delightful
+discovery. Perhaps both visitors and flight crews couldn’t wait to join
+the beach!</p>
+<p>For a more comprehensive overview of the Multiple Linear Regression
+(MLR) model, please refer to the <a
+href="https://yuxinyin0906.github.io/p8105_final_project/MLR.html">Analysis-MLR
+page</a>.In brief, the Adjusted <span class="math inline">\(R^2\)</span>
+stands at a mere 0.110, suggesting that the linear model falls short in
+adequately addressing delay-related issues.</p>
+<div class="float">
+<img src="image/mlr_estimate.png" style="width:80.0%"
+alt="Estimates of MLR" />
+<div class="figcaption">Estimates of MLR</div>
+</div>
+</div>
+</div>
+<div id="machine-learning-methods" class="section level3">
+<h3>Machine Learning Methods</h3>
 <p>After the initial acquisition of insights, we wanted to further
 analyze the data and build predictive models to predict whether a flight
 is delayed or not based on highly correlated variables. In order to
 reach the goal, we chose two models, lasso regression and random forest
 as they bring different strengths to the table.</p>
-</div>
-<div id="lasso-regression" class="section level3">
-<h3>Lasso Regression</h3>
+<div id="lasso-regression" class="section level4">
+<h4>Lasso Regression</h4>
 <p>Using the <code>logistic_reg</code> function with hyperparameter
 tuning for the penalty and mixture parameters, we defined the logistic
 regression model. The glmnet engine was set up to be used by the model.
@@ -1061,7 +1142,7 @@ mean Area under the ROC Curve (AUC). By highlighting the penalty value
 corresponding to the peak AUC, we visualized the AUC-penalty
 relationship.</p>
 <div class="float">
-<img src="image/best_hyperparameter.png" style="width:45.0%"
+<img src="image/best_hyperparameter.png" style="width:80.0%"
 alt="Finding the Best Hyperparameter" />
 <div class="figcaption">Finding the Best Hyperparameter</div>
 </div>
@@ -1069,8 +1150,8 @@ alt="Finding the Best Hyperparameter" />
 optimal hyperparameters on the entire dataset, and examined coefficients
 to identify the top 20 predictors.</p>
 </div>
-<div id="random-forest-regression" class="section level3">
-<h3>Random Forest Regression</h3>
+<div id="random-forest-regression" class="section level4">
+<h4>Random Forest Regression</h4>
 <p>The first step we took was detecting and storing the number of
 available CPU cores in the variable <code>cores</code>. This information
 is essential for optimizing the performance of parallelized
@@ -1087,7 +1168,7 @@ developed logistic regression model. We visualized sensitivity and
 specificity metrics on a ROC curve for both models using the training
 set.</p>
 <div class="float">
-<img src="image/rf.png" style="width:45.0%"
+<img src="image/rf.png" style="width:80.0%"
 alt="Comparison between Two Models" />
 <div class="figcaption">Comparison between Two Models</div>
 </div>
@@ -1097,6 +1178,7 @@ forest model performs better than the logistic regression model.</p>
 hyperparameters and evaluated its performance. As we did for logistic
 regression model, we also visualized the top 20 predictors to highlight
 the feature importance of the model.</p>
+</div>
 </div>
 </div>
 <div id="discussion" class="section level2">

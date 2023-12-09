@@ -335,7 +335,9 @@ div.tocify {
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li class="dropdown-header">Us</li>
+    <li>
+      <a href="about.html">Us</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -492,7 +494,7 @@ of destination dummy variables. Notably, only Daniel K. Inouye
 International Airport (HNL) stands out with negative estimates, implying
 that flights to HNL are less likely to experience delays—a delightful
 discovery. Perhaps both visitors and flight crews couldn’t wait to join
-the beach</p>
+the beach!</p>
 <pre class="r"><code>fit_AIC = lm(formula = arr_delay ~ origin + hour + carrier + dest + air_time + minute + 
     wind_dir + pressure + visib + arrival_date,
     data = df_2013_mlr)
