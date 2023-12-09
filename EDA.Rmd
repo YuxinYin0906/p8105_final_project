@@ -394,5 +394,5 @@ part_day_plot / part_day_plot_delay
 Furthermore, we further visualized the changes of number of delays and daytime divided into `Late Night`, `Morning`, `Afternoon`, `Evening`. The number of arrival delays was increased from time during laye night to afternoon, dropping during the evening. We found a largest number of delays during afternoon, with the average time delay of 9 minutes. 
 
 ## Insights from Visualization
-Based on above visualizations, we anticipated weather factors such as pressure,visibility and wind conditions can be beneficial in predicting flight delay task. Additionally, other features such as information about flight carrier and temporarily are believed to helpful in such prediction task as well. Thus, in the subsequent sections, we would further quantity their correlations by leveraging multiple linear regression.
+Based on above visualizations, we anticipated weather factors such as pressure,visibility and wind conditions can be beneficial in predicting flight delay task. Additionally, other features such as information about flight carrier and temporal characteristics are believed to helpful in such prediction task as well. Thus, in the subsequent sections, we would further quantity their correlations by leveraging multiple linear regression.
 
