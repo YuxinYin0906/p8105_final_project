@@ -1,0 +1,29 @@
+name: "P8105 Final Project"
+output_dir: "."
+navbar:
+  left:
+  title: "Home"
+    
+  right:
+    - text: "About"
+      href: about.html
+      menu:
+      - text: "Us"
+        href: 
+    - text: "Final Report"
+      href: report.html
+    - text: "Analysis"
+      menu:
+      - text: "Prediction"
+        href: Prediction_v2.html
+      - text: "MLR"
+        href: MLR.html
+      - text: "Exploratory Data Analysis"
+        href: EDA.html
+    - icon: fa-envelope fa-lg
+      href: mailto:<you@youremail.com>
+    - icon: fa-github fa-lg
+      href: https://github.com/YuxinYin0906/p8105_final_project  
+output:
+  html_document:
+    theme: journal

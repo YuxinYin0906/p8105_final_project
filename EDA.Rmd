@@ -1,9 +1,16 @@
 ---
-title: "EDA"
-author: "Si Chen"
-date: "`r Sys.Date()`"
-output: github_document
+title: "Exploratory Data Analysis"
+output: 
+  html_document:
+    toc: true
+    code_folding: hide
+    toc_float: true
 ---
+## Visualization
+
+To provide an overall view of the distribution in arrival delay (in minutes), we created a histogram for the arrival delay in 2013, a barplot showing the arrival status categorized by three NYC departure airports (`LGA`, `JFK`, `EWR`) and a boxplot below displaying the top 6 average arrival delay grouped by destinations. Additionally, we then visualized the correlation between arrival delay and weather features (e.g.,`pressure`, `wind`, `visibility`, etc.) and some other external factors including `flight carriers`, `month` and specific datetime features. 
+
+Note: All visualization parts were performed on data consisting of flight and weather information in 2013. Data in 2017 was reserved for testing purpose only. 
 
 ```{r load_library, warning = FALSE, message = FALSE}
 library(tidyr)
@@ -13,6 +20,11 @@ library(dplyr)
 library(cowplot)
 library(gridExtra)
 library(RColorBrewer)
+library(plotly)
+library(corrplot)
+library(ggpubr)
+library(viridisLite)
+library(patchwork)
 
 knitr::opts_chunk$set(
     echo = TRUE,
@@ -22,7 +34,10 @@ knitr::opts_chunk$set(
   out.width = "90%"
 )
 
-theme_set(theme_minimal() + theme(legend.position = "bottom"))
+theme_set(theme_minimal() + 
+          theme(legend.position = "bottom",
+                plot.title= element_text(hjust = 0.5))
+          )
 
 options(
   ggplot2.continuous.colour = "viridis",
@@ -31,38 +46,32 @@ options(
 
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
-```
 
-### Load clean datasets
-
-```{r load_data}
+## Load dataset
 df_2013 = 
   read_csv("data/merge_data_2013.csv", show_col_types = FALSE)
 
-df_2017 = 
-  read_csv("data/merge_data_2017.csv", show_col_types = FALSE)
 
 # Convert month to factor with levels in ascending order and labels as month abbreviations
 df_2013$month <- factor(df_2013$month, levels = 1:12, labels = month.abb[1:12])
-```
+
+df_2013 <- df_2013 %>%
+  mutate(date = paste(month, day, sep = "_"))
 
 
-### Data set description
+average_delay_by_date <- df_2013 %>%
+  # group_by(date) %>%
+  group_by(month, date) %>%
+  summarise(
+    avg_arr_delay = mean(arr_delay, na.rm = TRUE),
+    avg_precip = mean(precip, na.rm = TRUE),
+    avg_wind_dir = mean(wind_dir, na.rm = TRUE),
+    avg_wind_speed = mean(wind_speed, na.rm = TRUE),
+    avg_wind_gust = mean(wind_gust, na.rm = TRUE),
+    avg_pressure = mean(pressure, na.rm = TRUE),
+    avg_visib = mean(visib, na.rm = TRUE)
+    )
 
-In the dataset for 2013, there are `r ncol(df_2013)` columns and `r nrow(df_2013)` rows. 
-In the dataset for 2017, there are `r ncol(df_2017)` columns and `r nrow(df_2017)` rows. 
-
-There are `r n_distinct(df_2013$carrier)` different carriers flying out of NYC airports. NYC has `r n_distinct(df_2013$origin)` different airports. There are `r n_distinct(df_2013$dest)` different destination locations to which flights fly out of NYC airports. 
-
-TBC...
-
-
-# Weather
-
-Visualize association between weather variables?
-aggregate by date, plot scatter plot, add fitted line (instead of by month)?
-
-```{r aggregate_df_2013_month}
 
 # Aggregate the data by month and calculate averages
 df_2013_avg <- df_2013 %>%
@@ -76,414 +85,35 @@ df_2013_avg <- df_2013 %>%
     avg_pressure = mean(pressure, na.rm = TRUE),
     avg_visib = mean(visib, na.rm = TRUE)
   )
-
 ```
 
-
-
-## Preciptation 2013
-
-```{r precip, echo=FALSE}
-# Plot precipitation against month using bar plot
-precip_bar =  
-  df_2013 %>% 
-  ggplot(aes(x = month, y = precip)) +
-  geom_bar(stat = "summary", fun = "mean", fill = "skyblue", alpha = 0.7) +
-  labs(title = "Average Precipitation by Month",
-       x = "Month",
-       y = "Precipitation (inches)")
-
-# Plot average precipitation by month in scatter plot + line
-precip_line = 
-  ggplot(df_2013, aes(x = month, y = precip)) +
-  geom_point(stat = "summary", fun = "mean", size = 3, color = "coral") +
-  geom_line(aes(group = 1), stat = "summary", fun = "mean", color = "skyblue", size = 1) +
-  labs(title = "Average Precipitation by Month",
-       x = "Month",
-       y = "Precipitation (inches)")
-
-# precipitation by month in violin plot
-precip_violin = 
-  ggplot(df_2013, aes(x = month, y = precip, color = month)) +
-  geom_violin(alpha = 0.7) +
-  labs(title = "Distribution of Precipitation by Month",
-       x = "Month",
-       y = "Precipitation (inches)")
-
-
-# Plot bar plot with line overlay
-precip_line_bar = 
-  ggplot(df_2013, aes(x = month, y = precip))  +  
-  geom_bar(aes(x=month, y=precip),stat="summary", fun = 'mean', fill="skyblue")+ 
-  geom_point(aes(x=month, y=precip), stat = "summary", fun = "mean", size = 2, color = "coral", alpha = .5) + 
-  geom_line(aes(group = 1), stat="summary", fun = 'mean', color="coral", size=1, alpha = .8)+ 
-  labs(
-    title= "Average Precipitation by Month", 
-    x="Month",
-    y="Precipitation")
-  
-```
-
-
-```{r precip_delay}
-# Plot precipitation against arrival delay in a scatter plot
-precip_delay = 
-  ggplot(df_2013, aes(x = precip, y = arr_delay)) +
-  geom_point(alpha = 0.5, color = "skyblue") +
-  labs(title = "Scatter Plot of Precipitation against Arrival Delay",
-       x = "Precipitation (inches)",
-       y = "Arrival Delay (minutes)")
-
-```
-
-
-```{r precip_delay_month}
-# Average precip against average arr_delay by month
-precip_delay_month = 
-  ggplot(df_2013_avg, aes(x = avg_precip, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
-  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
-  labs(title = "Scatter Plot of Precipitation against Arrival Delay",
-       x = "Precipitation (inches)",
-       y = "Arrival Delay (minutes)")
-
-```
-
-
-```{r show_precip}
-
-# grid.arrange(precip_line_bar, precip_delay, nrow = 2)
-# precip_violin
-# precip_line
-# precip_bar
-summary(df_2013$precip)
-
-precip_line_bar
-precip_delay
-precip_delay_month
-
-```
-
-
-## Pressure
-
-```{r plot_pressure}
-
-# Plot average pressure by month in line plot
-pressure_line = 
-  ggplot(df_2013, aes(x = month, y = pressure))  +  
-  #geom_bar(aes(x=month, y=pressure),stat="summary", fun = 'mean', fill="skyblue")+ 
-  geom_point(aes(x=month, y=pressure), stat = "summary", fun = "mean", color = "coral", alpha = .8) + 
-  geom_line(aes(group = 1), stat="summary", fun = 'mean', color="skyblue", size=1, alpha = .8) + 
-  labs(
-    title= "Average Pressure by Month", 
-    x="Month",
-    y="Pressure")
-
-# Plot Pressure against arrival delay in a scatter plot
-pressure_delay = 
-  ggplot(df_2013, aes(x = pressure, y = arr_delay)) +
-  geom_point(alpha = 0.5, color = "skyblue") +
-  labs(title = "Scatter Plot of Pressure against Arrival Delay",
-       x = "Pressure",
-       y = "Arrival Delay (minutes)")
-
-# Average pressure against average arr_delay by month
-pressure_delay_month = 
-  ggplot(df_2013_avg, aes(x = avg_pressure, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
-  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
-  labs(title = "Scatter Plot of Average Pressure against Arrival Delay by Month",
-       x = "Avg Monthly Pressure",
-       y = "Avg Arrival Delay (minutes)")
-
-```
-
-
-```{r show_pressure}
-summary(df_2013$pressure)
-
-pressure_line
-pressure_delay
-pressure_delay_month
-
-```
-
-## Visibility
-
-```{r visib}
-
-# Plot average Visibility by month in line plot
-visib_line = 
-  ggplot(df_2013, aes(x = month, y = visib))  +  
-  # geom_bar(aes(x=month, y=visib),stat="summary", fun = 'mean', fill="skyblue")+ 
-  geom_point(aes(x=month, y=visib), stat = "summary", fun = "mean", color = "coral") + 
-  geom_line(aes(group = 1), stat="summary", fun = 'mean', color="skyblue", size=1, alpha = .8) + 
-  labs(
-    title= "Average Visibility by Month", 
-    x="Month",
-    y="Visibility")
-
-# Plot Visibility against arrival delay in a scatter plot
-visib_delay = 
-  ggplot(df_2013, aes(x = visib, y = arr_delay)) +
-  geom_point(alpha = 0.5, color = "skyblue") +
-  labs(title = "Scatter Plot of Visibility against Arrival Delay",
-       x = "Visibility",
-       y = "Arrival Delay (minutes)")
-
-# Average Visibility against average arr_delay by month
-visib_delay_month = 
-  ggplot(df_2013_avg, aes(x = avg_visib, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
-  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
-  labs(title = "Scatter Plot of Average Visibility against Arrival Delay by Month",
-       x = "Avg Monthly Visibility",
-       y = "Avg Arrival Delay (minutes)")
-
-
-```
-
-
-```{r show_visib}
-summary(df_2013$visib)
-
-visib_line
-visib_delay
-visib_delay_month
-
-```
-
-## Wind Direction
-
-```{r plot_wind_dir}
-
-# Plot average wind_dir by month in line plot
-wind_dir_line = 
-  ggplot(df_2013, aes(x = month, y = wind_dir))  +  
-  geom_bar(aes(x=month, y=wind_dir),stat="summary", fun = 'mean', fill="skyblue", alpha = .8)+ 
-  geom_point(aes(x=month, y=wind_dir), stat = "summary", fun = "mean", color = "red") + 
-  geom_line(aes(group = 1), stat="summary", fun = 'mean', color="coral", size=1, alpha = .9) + 
-  labs(
-    title= "Average Wind Direction by Month", 
-    x="Month",
-    y="Wind Direction")
-
-# Plot Wind Direction against arrival delay in a scatter plot
-wind_dir_delay = 
-  ggplot(df_2013, aes(x = wind_dir, y = arr_delay)) +
-  geom_point(alpha = 0.5, color = "skyblue") +
-  labs(title = "Scatter Plot of Wind Direction against Arrival Delay",
-       x = "Wind Direction",
-       y = "Arrival Delay (minutes)")
-
-# Average Wind Direction against average arr_delay by month
-wind_dir_delay_month = 
-  ggplot(df_2013_avg, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
-  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
-  labs(title = "Scatter Plot of Average Wind Direction against Arrival Delay by Month",
-       x = "Avg Monthly Wind Direction",
-       y = "Avg Arrival Delay (minutes)")
-
-```
-
-```{r show_wind_dir}
-
-summary(df_2013$wind_dir)
-
-wind_dir_line
-wind_dir_delay
-wind_dir_delay_month
-
-```
-
-
-## Wind Speed
-```{r plot_wind_speed}
-# Plot average wind_speed by month in line plot
-wind_speed_line = 
-  ggplot(df_2013, aes(x = month, y = wind_speed))  +  
-  geom_bar(aes(x=month, y=wind_speed),stat="summary", fun = 'mean', fill="skyblue", alpha = .8)+ 
-  geom_point(aes(x=month, y=wind_speed), stat = "summary", fun = "mean", color = "red") + 
-  geom_line(aes(group = 1), stat="summary", fun = 'mean', color="coral", size=1, alpha = .8) + 
-  labs(
-    title= "Average Wind Speed by Month", 
-    x="Month",
-    y="Wind Speed")
-
-# Plot wind_speed against arrival delay in a scatter plot
-wind_speed_delay = 
-  ggplot(df_2013, aes(x = wind_speed, y = arr_delay)) +
-  geom_point(alpha = 0.5, color = "skyblue") +
-  labs(title = "Scatter Plot of Wind Speed against Arrival Delay",
-       x = "Wind Speed",
-       y = "Arrival Delay (minutes)")
-
-# Average wind_speed against average arr_delay by month
-wind_speed_delay_month = 
-  ggplot(df_2013_avg, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
-  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
-  labs(title = "Scatter Plot of Average Wind Speed against Arrival Delay by Month",
-       x = "Avg Monthly Wind Speed",
-       y = "Avg Arrival Delay (minutes)")
-
-```
-
-
-```{r show_wind_speed}
-
-summary(df_2013$wind_speed)
-
-wind_speed_line
-wind_speed_delay
-wind_speed_delay_month
-
-```
-
-
-## Wind Gust
-```{r plot_wind_gust}
-# Plot average wind_gust by month in line plot
-wind_gust_line = 
-  ggplot(df_2013, aes(x = month, y = wind_gust))  +  
-  geom_bar(aes(x=month, y=wind_gust),stat="summary", fun = 'mean', fill="skyblue", alpha = .8)+ 
-  geom_point(aes(x=month, y=wind_gust), stat = "summary", fun = "mean", color = "red") + 
-  geom_line(aes(group = 1), stat="summary", fun = 'mean', color="coral", size=1, alpha = .8) + 
-  labs(
-    title= "Average Wind Gust by Month", 
-    x="Month",
-    y="Wind Gust")
-
-# Plot wind_gust against arrival delay in a scatter plot
-wind_gust_delay = 
-  ggplot(df_2013, aes(x = wind_gust, y = arr_delay)) +
-  geom_point(alpha = 0.5, color = "skyblue") +
-  labs(title = "Scatter Plot of Wind Gust against Arrival Delay",
-       x = "Wind Gust",
-       y = "Arrival Delay (minutes)")
-
-# Average wind_gust against average arr_delay by month
-wind_gust_delay_month = 
-  ggplot(df_2013_avg, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
-  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
-  labs(title = "Scatter Plot of Average Wind Gust against Arrival Delay by Month",
-       x = "Avg Monthly Wind Gust",
-       y = "Avg Arrival Delay (minutes)")
-
-
-```
-
-```{r show_wind_gust}
-
-summary(df_2013$wind_gust)
-
-wind_gust_line
-wind_gust_delay
-wind_gust_delay_month
-
-```
-
-
-
-
-# Flights
 
 ## Arrival Delay Summary
 
-```{r delay_summary}
-
-summary(df_2013$arr_delay)
-
+```{r delay_summary, warning = FALSE, message = FALSE,fig.width=10}
 dd_hist = 
   ggplot(data = df_2013, aes(x = arr_delay)) +
-  geom_histogram(fill = 'skyblue', color = 'coral')+
-  labs(title = "Histogram of Arrival Delay",
+  geom_histogram(fill = 'skyblue', color = 'black')+
+  labs(title = "Distribution of Arrival Delay",
        x = "Arrival Delay (minutes)",
        y = "Frequency")
 
-dd_hist
-```
+origin_delay = df_2013 |> 
+  mutate(
+    arrival_type = ifelse(arr_delay <= 0, "on time", "delayed")) |> 
+  ggplot(aes(x = origin, fill = arrival_type)) +
+    geom_bar()+
+    scale_fill_brewer(palette = "Set3") + 
+    labs(title = "Arrival Status Depatured from NYC Airports",
+         x = "Origin",
+         y = "Counts")
 
-## Distance - Arrival Delay - Destination
-
-The relationship between the distance and the average delay for each location.
-
-```{r dist_delay_dest}
-
-df_2013_dest <- 
-  df_2013 %>% 
-  group_by(dest) %>%
-  summarize(
-    count = n(),
-    dist = mean(distance, na.rm = TRUE),
-    delay = mean(arr_delay, na.rm = TRUE)
-  )
-
-```
-
-
-```{r}
-df_2013_dest
-
-ggplot(df_2013_dest, aes(dist, delay)) + 
-  geom_point(aes(size = count, color = dist),alpha = 0.5) + 
-  geom_smooth(color = 'skyblue') + 
-  geom_jitter() +
-  scale_fill_brewer(palette = "Set3") +
-  labs(title = "Distance against Arrival Delay",
-       x = "Distance",
-       y = "Arrival Delay (minutes)")
-
-```
-
-Flights tend to have more delays in short-medium distances. Long distance flights do not have as much delay.
-
-
-
-## Arrival delay by origins
-```{r origin_delay}
-
-df_2013 %>%
-  group_by(origin) %>%
-  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
-  arrange(desc(mean_ad))
-
-# Plot violin plot of arr_delay against origin, coloring by origin
-# reversing the order from high to low
-delay_origin_box = 
-  ggplot(df_2013, aes(x = reorder(origin, -arr_delay), y = arr_delay, fill = origin)) +
-  geom_boxplot(trim = FALSE, scale = "width", alpha = 0.7) +
-  labs(title = "Violin Plot of Arrival Delay by Origin",
-       x = "Origin",
-       y = "Arrival Delay (minutes)")
-
-delay_origin_box
-
-```
-
-
-## Arrival delay by Destination
-
-```{r dest_delay}
-
-df_2013 %>%
-  group_by(dest) %>%
-  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
-  arrange(desc(mean_ad))
-
-
-```
-
-```{r plot_dest_delay}
 # Calculate average arrival delay by destination
 avg_arr_delay_by_dest <- df_2013 %>%
   group_by(dest) %>%
   summarize(avg_arr_delay_dest = mean(arr_delay, na.rm = TRUE)) %>%
   arrange(desc(avg_arr_delay_dest)) %>%
-  head(10)
+  head(6)
 
 # Select only the top 6 destinations
 top_destinations <- avg_arr_delay_by_dest$dest
@@ -492,165 +122,277 @@ top_destinations <- avg_arr_delay_by_dest$dest
 filtered_data <- df_2013 %>% filter(dest %in% top_destinations)
 
 # Create a boxplot for the top 6 destinations
-top10_dest = 
+top6_dest = 
   ggplot(filtered_data, aes(x = reorder(dest, -arr_delay), y = arr_delay, fill = dest)) +
   geom_boxplot() +
   scale_fill_brewer(palette = "Set3") +
-  labs(title = "Boxplot of Arrival Delay for Top 6 Destinations",
+  labs(title = "Arrival Delay for Top 6 Destinations",
        x = "Destination",
        y = "Arrival Delay (minutes)")
 
- top10_dest
-```
 
-
-## Arrival delay by carriers
-
-```{r carrier_delay}
-
-df_2013 %>%
-  group_by(carrier) %>%
-  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
-  arrange(desc(mean_ad))
-
-# Plot violin plot of arr_delay against carrier, coloring by carrier
-# reversing the order from high to low
-delay_carrier_box = 
-  ggplot(df_2013, aes(x = reorder(carrier, -arr_delay), y = arr_delay, fill = carrier)) +
-  geom_violin(trim = FALSE, scale = "width", alpha = 0.7) +
-  labs(title = "Violin Plot of Arrival Delay by Carrier",
-       x = "Carrier",
-       y = "Arrival Delay (minutes)")
-
-delay_carrier_box
-```
-
-
-## Arrival Delay by Month
-
-```{r month_delay}
-
-df_2013 %>%
-  group_by(month) %>%
-  summarise(mean_ad = mean(arr_delay), sd_ad = sd(arr_delay), IQR_ad = IQR(arr_delay), n = n()) %>% 
-  arrange(desc(mean_ad))
-
-# Plot violin plot of arr_delay against month, coloring by month
-# reversing the order from high to low
-delay_month_box = 
-  ggplot(df_2013, aes(x = reorder(month, -arr_delay), y = arr_delay, fill = month)) +
-  geom_violin(trim = FALSE, scale = "width", alpha = 0.7) +
-  labs(title = "Violin Plot of Arrival Delay by Month",
-       x = "Month",
-       y = "Arrival Delay (minutes)")
-
-delay_month_box
-```
-
-
-## Flight 
-
-
-## Tailnum
-
-```{r flight_delay}
-
-flights_delay <- 
-  df_2013 %>% 
-  group_by(tailnum) %>%
-  summarize(
-    count = n(),
-    avg_delay = mean(arr_delay)
-  )
+dd_hist | origin_delay / top6_dest
 
 ```
 
 
 ```{r}
-flights_delay
-
-ggplot(flights_delay, aes(avg_delay)) + 
-  geom_freqpoly(color = 'skyblue') +
-  labs(title = "Distribution of Average Arrival Delay by Flight",
-       x = "Average Arrival Delay"
-       )
-
-```
-
-```{r find_max}
-
-max_delay <- 
-  flights_delay %>% 
-  arrange(-avg_delay)
-
-max_delay
-
-```
-
-N305AS had an average delay of 196 minutes, which is about 3 hours. 
-
-
-
-## On time arrival rate for NYC airports
-
-Suppose a flight that is delayed for less than 5 minutes is basically “on time”. Assume we onsider any flight delayed for 5 minutes of more to be “delayed”
-
-```{r on_time_arr}
-df_2013 <- 
-  df_2013 %>% 
-  mutate(
-    ontime = arr_delay < 5
+df_2013 |> 
+  summarise(min_delay = min(arr_delay),
+            avg_delay = mean(arr_delay),
+            median_delay = median(arr_delay),
+            max_delay = max(arr_delay)
+            ) |>
+  knitr::kable(
+    digits = 3,
+    col.names = c("Min Delay Time (Minutes)","Average Delay Time (Minutes)", "Median Delay Time (Minutes)", 
+                  "Max Delay Time (Minutes)")
     )
-
-df_2013 <- 
-  df_2013 %>%
-  mutate(
-    arr_type = ifelse(arr_delay < 5, "on time", "delayed")
-    )
-
-df_2013 %>% 
-  group_by(origin) %>% 
-  summarise(ontime_prop = sum(ontime == TRUE) / n()) %>% 
-  arrange(desc(ontime_prop))
-
-ggplot(data = df_2013, aes(x = origin, fill = arr_type)) +
-  geom_bar()+
-  scale_fill_brewer(palette = "Set3") + 
-  labs(title = "Bar Plot of On-time Arrival for NYC Airports",
-       x = "Origin",
-       y = "Count of on-time arrival")
 ```
 
-The plot shows that LGA airport has the best on time arrival rate and EWR airport has the worst.
 
 
-
-## Average Speed for flight (air_time & distance)
-
-We set average speed = distance / (air_time/60) in miles/hr.
-
-```{r avg_speed}
-df_2013 <- 
-  df_2013 %>% 
+```{r overview statistical table}
+df_2013 |> 
   mutate(
-    avg_speed = distance / (air_time/60)
+    arrival_type = ifelse(arr_delay <= 0, "on time", "delayed")) |> 
+  group_by(arrival_type) |> 
+  summarise(count = n(),
+            average_delay_time = mean(arr_delay)) |> 
+  knitr::kable(
+    digits = 3,
+    col.names = c("Arrival Type", "Count", "Average Delay Time (minutes)")
     )
+```
 
-ggplot(data = df_2013, aes(x = distance, y = avg_speed, color = avg_speed)) + 
-  geom_point(alpha = .6) +
-  scale_fill_brewer(palette = "Set3") + 
-  labs(title = "Scatter Plot of Average Flight Speed against Distance",
-       x = "Distance",
-       y = "Average Flight Speed")
+The overall distribution of arrival delay was highly skewed to the right, with the average delay time 7.28 minutes. Based on the barplot of arrival delay grouped by origins, we found that EWR had the highest portion of delays in respect to its total flights, and JFK had the the lowest number of delays.Based on the boxplot displaying average time of arrival delay, we did not perceive any major differences regarding arrival delay time under the top 6 destinations.Approximately 58% of records (n=42,150) in the dataset were reported as on-time, and among them, the average time in earlier arrival was 15 minutes. On the contrary, in the delay group, the delay time was calculated to be 38 minutes on average. 
 
-ggplot(data = df_2013, aes(x = avg_speed, y = arr_delay, color = avg_speed)) + 
-  geom_point(alpha = .4) +
-  scale_fill_brewer(palette = "Set3") + 
-  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) + 
-  labs(title = "Scatter Plot of Average Flight Speed against Arrival Delay",
-       x = "Average Flight Speed",
-       y = "Arrival Delay (minutes)")
+
+## Correlation Plot
+```{r}
+df_2013 = read.csv("data/merge_data_2013.csv") |> 
+  mutate(month = factor(month, levels = 1:12, labels = month.abb[1:12]))
+df_corr = df_2013 |> 
+  select(-year,-flight, -day, -minute, -hour) |> 
+  select_if( is.numeric)
+corrplot(cor(df_corr), type="upper", order="hclust",
+         col=brewer.pal(n=8, name="RdYlBu"))
+```
+
+The correlation heatmap plot depicted some highly correlated pair of features such as `wind_speed` and `precip`, and `air_time` and `distance`. Thus, in the modeling process, we will only keep one variable for each pair to avoid the multicollinearity issue. In this case, we removed features `wind speed` and `distance` when constructing the model.
+
+
+## Arrival Delay & Weather Factors
+
+To visualize the relationships between arrival delay and weather features, we plot scatterplot of `arr_delay` against `pressure`, `visibility`, `wind_gust`, `wind_dir`, and `wind_speed` respectively.
+
+### Pressure
+
+```{r pressure_date, warning = FALSE, message = FALSE}
+# Average pressure against average arr_delay by month
+pressure_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_pressure, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_pressure, y = avg_arr_delay, color = month)) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  stat_cor(method = "pearson", label.x = 1020, label.y = -30, size = 5) +  
+  labs(title = "Scatter Plot of Average Pressure against Arrival Delay by Date",
+       x = "Avg Pressure by Date",
+       y = "Avg Arrival Delay (minutes)")
+
+pressure_delay_date
 
 ```
 
+From the plot we could observe a trend that as pressure increased, the arrival delay time decreased. Since the trend seemed not very clear, we then calculated the correlation coefficient between the two variables. The correlation coefficient was -0.26, suggesting a weak negative correlation between pressure (mmhg) and arrival delay in minutes. While the p-value was significantly small, it might be driven by a large sample size (n=72,734). 
+
+
+
+### Visibility
+
+```{r visib}
+
+df_2013 |> 
+  group_by(visib) |> 
+  mutate(count_delay = if_else(arr_delay>0 , 1, 0)) |> 
+  summarise(avg_delay = mean(arr_delay),
+            number_of_delays = sum(count_delay)
+            ) |> 
+  ggplot(aes(x=visib,
+             y=avg_delay, color=number_of_delays))+
+   geom_point() +
+  labs(title = "Arrival Delay Vs. Visibility",
+      x = "Visibility",
+      y = "Average of Arrival Delay Time (Minutes)") 
+
+```
+
+Based on the graph, it appeared that the incremental of visibility did not linearly correlate with the reduction in the number of delays. In the highest visibility 10, we perceived the highest number of delays. There was no major difference in the number of delays in visibility ranging from 0 to 9. However, we observed that visibility negatively correlated with average delay time in minutes. 
+
+### Wind
+```{r plot_weather_wind, warning = FALSE, message = FALSE,  fig.height=7}
+
+# Average Wind Direction against average arr_delay by date
+wind_dir_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  stat_cor(method = "pearson", size = 5) + 
+  guides(color = 'none') +  
+  labs(title = "Avg Wind Direction VS Arrival Delay",
+       x = "Avg Daily Wind Direction",
+       y = "Avg arr_delay")
+
+# Average wind_gust against average arr_delay by date
+wind_gust_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  stat_cor(method = "pearson", size = 5) + 
+  labs(title = "Avg Wind Gust VS Arrival Delay",
+       x = "Avg Daily Wind Gust",
+       y = "Avg arr_delay")
+
+# Average wind_speed against average arr_delay by date
+wind_speed_delay_date = 
+  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
+  geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  stat_cor(method = "pearson", size = 5) + 
+  guides(color = 'none') +  
+  labs(title = "Avg Wind Speed VS Arrival Delay",
+       x = "Avg Daily Wind Speed",
+       y = "Avg arr_delay")
+
+
+(wind_dir_delay_date | wind_speed_delay_date) / wind_gust_delay_date
+
+```
+
+The three scatterplots with fitted lines here illustrated the relationship between wind features and arrival delay. We also calculated the correlation coefficients to confirm the trends we observed. 
+According to the first graph, arrival delay was negatively related to wind direction. The correlation coefficient of -0.19 suggested that the negative correlation between wind direction and arrival delay was weak. In the second graph, generally arrival delay increased as wind speed increased, and this positive correlation, though weak, was also shown by its correlation coefficient of 0.1. Through the third graph and the calculated correlation coefficient of 0.11, a weak positive correlation between arrival delay and wind gust could be observed and derived. It was worth noticing that the significantly small p-values calculated for the three correlation coefficients might still be caused by the large sample size (n=72,734) rather than a solid evidence of the correlations. 
+
+
+
+## Arrival Delay & Carriers, Temporal Factors
+
+```{r, fig.width=10}
+
+carrier_plot = df_2013 |> 
+  group_by(carrier) |> 
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0)) |> 
+  summarise(delay_count = sum(delay_count)) |> 
+  ggplot(aes(x = carrier,
+            y = delay_count)) +
+  geom_bar(stat = "identity",  fill = viridis(16)) +
+  labs(title = "Number of Delays for Each Carrier", 
+        x = "Carrier",
+        y = "Total Number of Delays")
+
+
+month_plot = df_2013 |> 
+  group_by(month) |> 
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0)) |> 
+  summarise(delay_count = sum(delay_count)) |> 
+  ggplot(aes(x = month,
+            y = delay_count, group=1)) +
+  geom_point(color="#0aa2fa") +
+  geom_line(color="#0aa2fa") +
+  labs(title = "Number of Delays for Each Month", 
+        x = "Month",
+        y = "Total Number of Delays")
+
+carrier_plot | month_plot
+
+```
+
+The carrier `EV` was shown to have the highest number of delays, followed by carrier `B6`. The number of delays for carrier `HA` was found to be the lowest across all carriers. Months such as March and April appeared to have the relatively high number of delays, and the lowest total number of delays occurred in September. 
+
+
+```{r, message=FALSE, fig.width=9}
+df_2013_weekday = read_csv("data/merge_data_2013.csv") |> 
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0),
+         arrival_date = paste(year,"-",month,"-",day, sep = "")
+         ) |>
+  mutate(week_date = weekdays(date(arrival_date)),
+          week_date = factor(week_date, 
+                             levels = c("Monday", "Tuesday", "Wednesday", 
+                                        "Thursday", "Friday", "Saturday",
+                                        "Sunday"))
+  )
+
+weekday_plot = df_2013_weekday |> 
+  group_by(week_date) |> 
+  summarise(delay_count = sum(delay_count)) |> 
+  ggplot(aes(x = week_date,
+            y = delay_count, group=1)) +
+    geom_point(color="#6f98d1") +
+  geom_line(color="#6f98d1") +
+  labs(title = "Number of Delays Vs. Weekday", 
+        x = "Weekday",
+        y = "Total Number of Delays")
+
+weekday_plot_delay = df_2013_weekday |> 
+  group_by(week_date) |> 
+  summarise(avg_delay = mean(arr_delay)) |> 
+  ggplot(aes(x = week_date,
+            y = avg_delay, group=1)) +
+    geom_point(color="#6f98d1") +
+  geom_line(color="#6f98d1") +
+  labs(title = "Average Time of Arrival Delays (minutes) Vs. Weekday", 
+        x = "Weekday",
+        y = "Average Time of Arrival Delays (minutes)")
+
+
+weekday_plot /weekday_plot_delay
+  
+  
+```
+
+An increasing trend in the number of delays was perceived from Monday to Thursday, followed by a decline on Friday and Saturday. Based on the figures, Saturday had the lowest number of delays and average time of arrival delays. It was also noted that Thursday was found to have the highest number of delays and average time of arrival delays in minutes. 
+
+```{r, fig.width=9}
+part_day_plot = df_2013 |> 
+  mutate(hour = cut(hour, 
+                    breaks = c(-Inf, 5, 12, 17, 21, Inf),
+                    labels = c("Late Night", "Morning", "Afternoon", "Evening", "Late Night"),
+                    include.lowest = TRUE
+                    )) |>
+  group_by(hour) |>
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0)) |> 
+  summarise(delay_count = sum(delay_count),
+            avg_delay = mean(arr_delay)) |> 
+  ggplot(aes(x = hour,
+            y = delay_count, group=1)) +
+  geom_point(color="#eb8f2d") +
+  geom_line(color="#eb8f2d") +
+  labs(title = "Number of Delays Vs. Daytime",
+       x = "Daytime",
+       y = "Total Number of Delays")
+
+
+part_day_plot_delay = df_2013 |> 
+  mutate(hour = cut(hour, 
+                    breaks = c(-Inf, 5, 12, 17, 21, Inf),
+                    labels = c("Late Night", "Morning", "Afternoon", "Evening", "Late Night"),
+                    include.lowest = TRUE
+                    )) |>
+  group_by(hour) |>
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0)) |> 
+   summarise(avg_delay = mean(arr_delay)) |> 
+  ggplot(aes(x = hour,
+            y = avg_delay, group=1)) +
+  geom_point(color="#eb8f2d") +
+  geom_line(color="#eb8f2d") +
+  labs(title = "Average Time of Arrival Delay (minutes) Vs. Daytime",
+       x = "Daytime",
+       y = "Average Arrival Delays (minutes)")
+
+part_day_plot / part_day_plot_delay
+  
+```
+
+Furthermore, we further visualized the changes of number of delays and daytime divided into `Late Night`, `Morning`, `Afternoon`, `Evening`. The number of arrival delays was increased from time during laye night to afternoon, dropping during the evening. We found a largest number of delays during afternoon, with the average time delay of 9 minutes. 
+
+## Insights from Visualization
+Based on above visualizations, we anticipated weather factors such as pressure,visibility and wind conditions can be beneficial in predicting flight delay task. Additionally, other features such as information about flight carrier and temporarily are believed to helpful in such prediction task as well. Thus, in the subsequent sections, we would further quantity their correlations by leveraging multiple linear regression.
 

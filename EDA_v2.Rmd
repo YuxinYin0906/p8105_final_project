@@ -1,0 +1,185 @@
+---
+title: "EDA v2"
+author: "Fangyi"
+date: "`r Sys.Date()`"
+---
+
+
+```{r load_library, warning = FALSE, message = FALSE}
+library(tidyr)
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(cowplot)
+library(gridExtra)
+library(RColorBrewer)
+library(corrplot)
+library(colorspace)
+library(viridisLite)
+```
+
+
+## Correlation Plot
+```{r}
+df_2013 = read.csv("data/merge_data_2013.csv") |> 
+  mutate(month = factor(month, levels = 1:12, labels = month.abb[1:12]))
+df_corr = df_2013 |> 
+  select(-year,-flight, -day, -minute, -hour) |> 
+  select_if( is.numeric)
+corrplot(cor(df_corr), type="upper", order="hclust",
+         col=brewer.pal(n=8, name="RdYlBu"))
+```
+Some highly correlated pair of features such as `wind_speed` and `precip`, and `air_time` and `distance`. Thus, in the modeling process, we will only keep one variable for each pair. 
+
+
+## Overall Arrival Delay in the dataset `2013`
+```{r}
+df_2013 |> 
+  ggplot(aes(x=arr_delay)) +
+  geom_histogram( binwidth=25, fill="#69b3a2", color="#e9ecef", alpha=0.9) +
+  labs(title = "Distribution of Arrival Delay (Minutes)",
+       x = "Arrival Delay (Minutes)")
+```
+
+```{r,  results='asis'}
+#summary(df_2013$arr_delay) |> 
+   #knitr::kable(digits = 3,
+               #col.names = c("Min", "Q1", "Median", "Mean", "Q3", "Max"))
+summary(df_2013$arr_delay)
+```
+
+```{r}
+df_2013 |> 
+  mutate(
+    arrival_type = ifelse(arr_delay <= 0, "on time", "delayed")) |> 
+  ggplot(aes(x = origin, fill = arrival_type)) +
+    geom_bar()+
+    scale_fill_brewer(palette = "Set3") + 
+    labs(title = "Bar Plot of On-time Arrival for NYC Airports",
+         x = "Origin",
+         y = "Count of on-time arrival")
+```
+
+## Arrival Delay Vs. Month
+```{r}
+df_2013 |> 
+  group_by(month) |> 
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0)) |> 
+  summarise(delay_count = sum(delay_count)) |> 
+  ggplot(aes(x = month,
+            y = delay_count)) +
+  geom_bar(stat = "identity",  fill = viridis(12)) +
+  labs(title = "Number of Delays for Each Month", 
+        x = "Month",
+        y = "Total Number of Delays")
+
+```
+Months `Mar` and `Apr` appear to have the highest number of delays, and the lowest total number of delays occur in September. 
+
+
+## Arrival Delay Vs. Pressure 
+```{r, warning=FALSE, message=FALSE}
+library(ggpubr)
+df_2013 |> 
+  ggplot(aes(x=pressure,
+             y = arr_delay, color=pressure)) +
+   geom_point(alpha = .4) +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 0.6) +
+  stat_cor(method = "pearson", label.x = 1020, label.y = -30, size = 5) +  
+  labs(title = "Arrival Delay (Minutes) Vs. Pressure",
+       y = "Arrival Delay (Minutes)")
+```
+The correlation coefficient was -0.087 suggesting a weak negative correlation between pressure (mmhg) and arrival delay in minutes. While the p-value is significantly small, it may be driven by a large sample size (n=72,734). 
+
+
+## Arrival Delay  & Air_time 
+```{r}
+df_2013 |> 
+  group_by(wind_speed) |> 
+  mutate(count_delay = if_else(arr_delay >0, 1, 0)) |> 
+  summarise(count_delay = sum(count_delay),
+            avg_visible = mean(visib)) |> 
+  ggplot(aes(x=wind_speed,
+             y=count_delay, color=avg_visible))+
+  geom_point()
+```
+## Arrival Delay & Visibility
+```{r}
+df_2013 |> 
+  group_by(visib) |> 
+  mutate(count_delay = if_else(arr_delay>0 , 1, 0)) |> 
+  summarise(avg_delay = mean(arr_delay),
+            number_of_delays = sum(count_delay)
+            ) |> 
+  ggplot(aes(x=visib,
+             y=avg_delay, color=number_of_delays))+
+   geom_point() +
+  labs(title = "Arrival Delay Vs. Visibility",
+      x = "Visibility",
+      y = "Average of Delay") 
+  
+```
+
+## Arrival Delay & Carrier
+```{r}
+df_2013 |> 
+  group_by(carrier) |> 
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0)) |> 
+  summarise(delay_count = sum(delay_count)) |> 
+  ggplot(aes(x = carrier,
+            y = delay_count)) +
+  geom_bar(stat = "identity",  fill = viridis(16)) +
+  labs(title = "Number of Delays for Each Carrier", 
+        x = "Carrier",
+        y = "Total Number of Delays")
+```
+
+## Arrival Delay & Hour (morning (5-12), afternoon (12-17), evening (17-21), late_night (21-5))
+```{r}
+df_2013 |> 
+  mutate(hour = cut(hour, 
+                    breaks = c(-Inf, 5, 12, 17, 21, Inf),
+                    labels = c("Late Night", "Morning", "Afternoon", "Evening", "Late Night"),
+                    include.lowest = TRUE
+                    )) |>
+  group_by(hour) |>
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0)) |> 
+  summarise(delay_count = sum(delay_count),
+            avg_delay = mean(arr_delay)) |> 
+  ggplot(aes(x = hour,
+            y = delay_count, group=1, color=avg_delay)) +
+  geom_point() +
+  geom_line() +
+  labs(title = "Number of Delays Across Parts of Day",
+       x = "Parts of Day",
+       y = "Total Number of Delays")
+  
+```
+## Arrival Delay & Weekday
+```{r, message=FALSE}
+df_2013_weekday = read_csv("data/merge_data_2013.csv") |> 
+  mutate(delay_count = if_else(arr_delay >0 , 1, 0),
+         arrival_date = paste(year,"-",month,"-",day, sep = "")
+         ) |>
+  mutate(week_date = weekdays(date(arrival_date)))
+
+df_2013_weekday |> 
+  group_by(week_date) |> 
+  summarise(delay_count = sum(delay_count)) |> 
+  ggplot(aes(x = week_date,
+            y = delay_count)) +
+  geom_bar(stat = "identity",  fill = viridis(7)) +
+  labs(title = "Number of Delays for Each Carrier", 
+        x = "Weekday",
+        y = "Total Number of Delays Vs. Weekday")
+
+```
+
+
+
+
+
+
+
+
+
