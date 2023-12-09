@@ -542,9 +542,9 @@ After the initial acquisition of insights, we wanted to further analyze the data
 
 Using the `logistic_reg` function with hyperparameter tuning for the penalty and mixture parameters, we defined the logistic regression model. The glmnet engine was set up to be used by the model. Feature preprocessing included managing data variables, eliminating unnecessary columns, creating dummy variables for categorical predictors, removing zero-variance predictors, and normalizing all predictors.  <br>
 <br>
-We then conducted a grid search was conducted over a range of penalty values and saved the results for further analysis. The best-performing hyperparameters were selected based on the highest mean Area under the ROC Curve (AUC). By highlighting the penalty value corresponding to the peak AUC, we visualized the AUC-penalty relationship.
+We then conducted a grid search was conducted over a range of penalty values and saved the results for further analysis. The best-performing hyperparameters were selected based on the highest mean area under the ROC Curve (AUC). By highlighting the penalty value corresponding to the peak AUC, we visualized the AUC-penalty relationship.
 
-![Finding the Best Hyperparameter](image/best_hyperparameter.png){width=45%}
+![Finding the Best Hyperparameter](image/best_hyperparameter.png)
 
 <br>
 After that, we trained the logistic regression model with the optimal hyperparameters on the entire dataset, and examined coefficients to identify the top 20 predictors. 
@@ -559,7 +559,7 @@ We used the area under the ROC curve metric to assess the model once hyperparame
 <br>
 One of the most important steps was comparing the performance of the random forest model with the previously developed logistic regression model. We visualized sensitivity and specificity metrics on a ROC curve for both models using the training set. 
 
-![Comparison between Two Models](image/rf.png){width=45%}
+![Comparison between Two Models](image/rf.png)
 
 <br>
 By looking at the graph, we could clearly find that the random forest model performs better than the logistic regression model.
@@ -572,7 +572,7 @@ The objective of the study was to assess the correlation between flight delay du
 
 ### Variable Selection
 
-Lasso Regression and Random Forest models were applied to analyze the 2013 New York City flight dataset. The accompanying plots shed light on the 'variable importance.' On the right side, the top 20 absolute value estimates of Lasso Regression reveal a predominant presence of destination dummy variables. In contrast, the Random Forest plot on the left tells a distinct tale. Continuous variables such as airtime, pressure, distance, etc., play a more significant role in predicting delays compared to other categorical variables.
+Lasso Regression and Random Forest models were applied to analyze the 2013 New York City flight dataset. The accompanying plots shed light on the 'variable importance.' On the left side, the top 20 absolute value estimates of Lasso Regression reveal a predominant presence of destination dummy variables. In contrast, the Random Forest plot on the right tells a distinct tale. Continuous variables such as airtime, pressure, distance, etc., play a more significant role in predicting delays compared to other categorical variables.
 
 ![Caption for Image 1](image/lr_varplot.png){width=45%}\hfill
 ![Caption for Image 2](image/rf_varplot.png){width=45%}

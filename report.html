@@ -1022,11 +1022,11 @@ predictors, removing zero-variance predictors, and normalizing all
 predictors. <br> <br> We then conducted a grid search was conducted over
 a range of penalty values and saved the results for further analysis.
 The best-performing hyperparameters were selected based on the highest
-mean Area under the ROC Curve (AUC). By highlighting the penalty value
+mean area under the ROC Curve (AUC). By highlighting the penalty value
 corresponding to the peak AUC, we visualized the AUC-penalty
 relationship.</p>
 <div class="float">
-<img src="image/best_hyperparameter.png" style="width:45.0%"
+<img src="image/best_hyperparameter.png"
 alt="Finding the Best Hyperparameter" />
 <div class="figcaption">Finding the Best Hyperparameter</div>
 </div>
@@ -1052,8 +1052,7 @@ developed logistic regression model. We visualized sensitivity and
 specificity metrics on a ROC curve for both models using the training
 set.</p>
 <div class="float">
-<img src="image/rf.png" style="width:45.0%"
-alt="Comparison between Two Models" />
+<img src="image/rf.png" alt="Comparison between Two Models" />
 <div class="figcaption">Comparison between Two Models</div>
 </div>
 <p><br> By looking at the graph, we could clearly find that the random
@@ -1074,10 +1073,10 @@ delays by employing a machine learning framework.</p>
 <h3>Variable Selection</h3>
 <p>Lasso Regression and Random Forest models were applied to analyze the
 2013 New York City flight dataset. The accompanying plots shed light on
-the ‘variable importance.’ On the right side, the top 20 absolute value
+the ‘variable importance.’ On the left side, the top 20 absolute value
 estimates of Lasso Regression reveal a predominant presence of
 destination dummy variables. In contrast, the Random Forest plot on the
-left tells a distinct tale. Continuous variables such as airtime,
+right tells a distinct tale. Continuous variables such as airtime,
 pressure, distance, etc., play a more significant role in predicting
 delays compared to other categorical variables.</p>
 <p><img src="image/lr_varplot.png" style="width:45.0%"

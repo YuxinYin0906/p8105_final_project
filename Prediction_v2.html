@@ -30,6 +30,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
@@ -226,6 +229,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -233,6 +299,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -273,10 +349,10 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="data_preprocess.html">Data Cleaning</a>
+      <a href="Prediction_v2.html">Prediction</a>
     </li>
     <li>
-      <a href="data_preprocess.html">Data Souce</a>
+      <a href="MLR.html">MLR</a>
     </li>
     <li>
       <a href="EDA.html">Exploratory Data Analysis</a>
@@ -386,6 +462,9 @@ lr_res %&gt;%
   scale_x_log10(labels = scales::label_number())+
   theme_minimal()</code></pre>
 <p><img src="Prediction_v2_files/figure-html/lr%20find%20the%20best%20hyperparameter-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We selected the best-performing hyperparameters based on highest mean
+area under the ROC curve (AUC). We can clearly the AUC-penalty
+relationship from the visualization.</p>
 <pre class="r"><code>lr_auc &lt;- 
   lr_res %&gt;% 
   collect_predictions(parameters = lr_best) %&gt;% 
@@ -428,6 +507,9 @@ coeff &lt;- tidy(lr_final) %&gt;%
        y = &#39;Estimate&#39;)</code></pre>
 <p><img src="Prediction_v2_files/figure-html/print%20the%20estimate-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#ggsave(&#39;image/lr_varplot.png&#39;)</code></pre>
+<p>According to the plot, the top 20 absolute value estimates of Lasso
+Regression reveal a predominant presence of destination dummy
+variables.</p>
 </div>
 <div id="random-forest" class="section level2">
 <h2>Random Forest</h2>
@@ -475,6 +557,8 @@ bind_rows(rf_auc, lr_auc) %&gt;%
   coord_equal() + 
   theme_minimal()</code></pre>
 <p><img src="Prediction_v2_files/figure-html/rf-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>By looking at the graph, we could clearly find that the random forest
+model performs better than the logistic regression model.</p>
 <pre class="r"><code># the last model
 last_rf_mod &lt;- 
   rand_forest(mtry = 31, min_n = 26, trees = 1000) %&gt;% 
@@ -507,6 +591,10 @@ rf_auc = last_rf_fit %&gt;%
 # collect_predictions() %&gt;% 
 # roc_curve(if_delay, .pred_0) %&gt;% 
 # autoplot()+ theme_minimal() </code></pre>
+<p>On the contrary of the lasso regression, the random forest plot show
+that continuous variables such as airtime, pressure, distance, etc.,
+play a more significant role in predicting delays compared to other
+categorical variables.</p>
 </div>
 </div>
 <div id="prediction-on-2017-dataset" class="section level1">
@@ -693,6 +781,8 @@ Random Forrest
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -730,6 +820,35 @@ $(document).ready(function () {
 });
 </script>
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

@@ -132,6 +132,8 @@ lr_res %>%
   
 ```
 
+We selected the best-performing hyperparameters based on highest mean area under the ROC curve (AUC). We can clearly the AUC-penalty relationship from the visualization.
+
 ```{r print the estimate}
 lr_auc <- 
   lr_res %>% 
@@ -168,6 +170,8 @@ ggplot(coeff, aes(x = reorder(term,estimate), y = estimate)) +
        y = 'Estimate')
 #ggsave('image/lr_varplot.png')
 ```
+
+According to the plot, the top 20 absolute value estimates of Lasso Regression reveal a predominant presence of destination dummy variables.
 
 ## Random Forest 
 
@@ -218,6 +222,7 @@ bind_rows(rf_auc, lr_auc) %>%
   theme_minimal()
 ```
 
+By looking at the graph, we could clearly find that the random forest model performs better than the logistic regression model.
 
 ```{r on the test set}
 # the last model
@@ -253,6 +258,9 @@ rf_auc = last_rf_fit %>%
 # autoplot()+ theme_minimal() 
 
 ```
+
+On the contrary of the lasso regression, the random forest plot show that continuous variables such as airtime, pressure, distance, etc., play a more significant role in predicting delays compared to other categorical variables.
+
 # Prediction on 2017 dataset
 
 ```{r Prediction on 2017}
