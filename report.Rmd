@@ -347,7 +347,7 @@ pressure_delay_date
 
 ```
 
-The correlation coefficient was -0.26 suggesting a weak negative correlation between pressure (mmhg) and arrival delay in minutes. While the p-value is significantly small, it may be driven by a large sample size (n=72,734). 
+From the plot we could observe a trend that as pressure increased, the arrival delay time decreased. Since the trend seemed not very clear, we then calculated the correlation coefficient between the two variables. The correlation coefficient was -0.26, suggesting a weak negative correlation between pressure (mmhg) and arrival delay in minutes. While the p-value was significantly small, it might be driven by a large sample size (n=72,734). 
 
 
 
@@ -374,30 +374,33 @@ Based on the graph, it appeared that the incremental of visibility did not linea
 
 #### Wind
 ```{r plot_weather_wind, warning = FALSE, message = FALSE,  fig.height=7}
-
 # Average Wind Direction against average arr_delay by date
 wind_dir_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
   geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  stat_cor(method = "pearson", size = 5) + 
   guides(color = 'none') +  
   labs(title = "Avg Wind Direction VS Arrival Delay",
        x = "Avg Daily Wind Direction",
        y = "Avg arr_delay")
+
 # Average wind_gust against average arr_delay by date
 wind_gust_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
   geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  stat_cor(method = "pearson", size = 5) + 
   labs(title = "Avg Wind Gust VS Arrival Delay",
        x = "Avg Daily Wind Gust",
        y = "Avg arr_delay")
 
 # Average wind_speed against average arr_delay by date
 wind_speed_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
   geom_smooth(method = "lm", se = FALSE, color = "coral", size = 0.6) +
+  stat_cor(method = "pearson", size = 5) + 
   guides(color = 'none') +  
   labs(title = "Avg Wind Speed VS Arrival Delay",
        x = "Avg Daily Wind Speed",
@@ -407,6 +410,10 @@ wind_speed_delay_date =
 (wind_dir_delay_date | wind_speed_delay_date) / wind_gust_delay_date
 
 ```
+
+The three scatterplots with fitted lines here illustrated the relationship between wind features and arrival delay. We also calculated the correlation coefficients to confirm the trends we observed. 
+According to the first graph, arrival delay was negatively related to wind direction. The correlation coefficient of -0.19 suggested that the negative correlation between wind direction and arrival delay was weak. In the second graph, generally arrival delay increased as wind speed increased, and this positive correlation, though weak, was also shown by its correlation coefficient of 0.1. Through the third graph and the calculated correlation coefficient of 0.11, a weak positive correlation between arrival delay and wind gust could be observed and derived. It was worth noticing that the significantly small p-values calculated for the three correlation coefficients might still be caused by the large sample size (n=72,734) rather than a solid evidence of the correlations. 
+
 
 
 
