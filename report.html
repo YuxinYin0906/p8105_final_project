@@ -480,10 +480,21 @@ portion of values (&gt;0.9) in some columns were missing in
 <code>2017 weather dataset</code>, we removed these columns on both 2013
 and 2017 datasets. Lastly, we removed the records containing any NA
 values. .</p>
-<pre class="r"><code>library(tidyverse)
-library(dplyr)
-library(&quot;nycflights13&quot;)
-flights_2013 = flights |&gt; 
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;tibble&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;readr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;purrr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;stringr&#39; was built under R version 4.2.2</code></pre>
+<pre><code>## Warning: package &#39;forcats&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;lubridate&#39; was built under R version 4.2.3</code></pre>
+<pre class="r"><code>library(dplyr)
+library(&quot;nycflights13&quot;)</code></pre>
+<pre><code>## Warning: package &#39;nycflights13&#39; was built under R version 4.2.3</code></pre>
+<pre class="r"><code>flights_2013 = flights |&gt; 
   janitor::clean_names()
 weather_2013 = weather |&gt; 
   janitor::clean_names()
@@ -819,10 +830,13 @@ pressure_delay_date =
 
 pressure_delay_date</code></pre>
 <p><img src="report_files/figure-html/pressure_date-1.png" width="90%" /></p>
-<p>The correlation coefficient was -0.26 suggesting a weak negative
-correlation between pressure (mmhg) and arrival delay in minutes. While
-the p-value is significantly small, it may be driven by a large sample
-size (n=72,734).</p>
+<p>From the plot we could observe a trend that as pressure increased,
+the arrival delay time decreased. Since the trend seemed not very clear,
+we then calculated the correlation coefficient between the two
+variables. The correlation coefficient was -0.26, suggesting a weak
+negative correlation between pressure (mmhg) and arrival delay in
+minutes. While the p-value was significantly small, it might be driven
+by a large sample size (n=72,734).</p>
 </div>
 <div id="visibility" class="section level4">
 <h4>Visibility</h4>
@@ -850,27 +864,31 @@ correlated with average delay time in minutes.</p>
 <h4>Wind</h4>
 <pre class="r"><code># Average Wind Direction against average arr_delay by date
 wind_dir_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
   geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  stat_cor(method = &quot;pearson&quot;, size = 5) + 
   guides(color = &#39;none&#39;) +  
   labs(title = &quot;Avg Wind Direction VS Arrival Delay&quot;,
        x = &quot;Avg Daily Wind Direction&quot;,
        y = &quot;Avg arr_delay&quot;)
+
 # Average wind_gust against average arr_delay by date
 wind_gust_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
   geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  stat_cor(method = &quot;pearson&quot;, size = 5) + 
   labs(title = &quot;Avg Wind Gust VS Arrival Delay&quot;,
        x = &quot;Avg Daily Wind Gust&quot;,
        y = &quot;Avg arr_delay&quot;)
 
 # Average wind_speed against average arr_delay by date
 wind_speed_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
   geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  stat_cor(method = &quot;pearson&quot;, size = 5) + 
   guides(color = &#39;none&#39;) +  
   labs(title = &quot;Avg Wind Speed VS Arrival Delay&quot;,
        x = &quot;Avg Daily Wind Speed&quot;,
@@ -879,6 +897,21 @@ wind_speed_delay_date =
 
 (wind_dir_delay_date | wind_speed_delay_date) / wind_gust_delay_date</code></pre>
 <p><img src="report_files/figure-html/plot_weather_wind-1.png" width="90%" /></p>
+<p>The three scatterplots with fitted lines here illustrated the
+relationship between wind features and arrival delay. We also calculated
+the correlation coefficients to confirm the trends we observed.
+According to the first graph, arrival delay was negatively related to
+wind direction. The correlation coefficient of -0.19 suggested that the
+negative correlation between wind direction and arrival delay was weak.
+In the second graph, generally arrival delay increased as wind speed
+increased, and this positive correlation, though weak, was also shown by
+its correlation coefficient of 0.1. Through the third graph and the
+calculated correlation coefficient of 0.11, a weak positive correlation
+between arrival delay and wind gust could be observed and derived. It
+was worth noticing that the significantly small p-values calculated for
+the three correlation coefficients might still be caused by the large
+sample size (n=72,734) rather than a solid evidence of the
+correlations.</p>
 </div>
 </div>
 <div id="arrival-delay-carriers-temporal-factors"
@@ -1038,10 +1071,9 @@ The best-performing hyperparameters were selected based on the highest
 mean Area under the ROC Curve (AUC). By highlighting the penalty value
 corresponding to the peak AUC, we visualized the AUC-penalty
 relationship.</p>
-<div class="float">
-<img src="image/best_hyperparameter.png" style="width:45.0%"
-alt="Finding the Best Hyperparameter" />
-<div class="figcaption">Finding the Best Hyperparameter</div>
+<div class="figure">
+<img src="image/best_hyperparameter.png" style="width:45.0%" alt="" />
+<p class="caption">Finding the Best Hyperparameter</p>
 </div>
 <p><br> After that, we trained the logistic regression model with the
 optimal hyperparameters on the entire dataset, and examined coefficients
@@ -1064,10 +1096,9 @@ comparing the performance of the random forest model with the previously
 developed logistic regression model. We visualized sensitivity and
 specificity metrics on a ROC curve for both models using the training
 set.</p>
-<div class="float">
-<img src="image/rf.png" style="width:45.0%"
-alt="Comparison between Two Models" />
-<div class="figcaption">Comparison between Two Models</div>
+<div class="figure">
+<img src="image/rf.png" style="width:45.0%" alt="" />
+<p class="caption">Comparison between Two Models</p>
 </div>
 <p><br> By looking at the graph, we could clearly find that the random
 forest model performs better than the logistic regression model.</p>
