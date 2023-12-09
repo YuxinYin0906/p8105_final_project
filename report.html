@@ -13,7 +13,7 @@
 
 <title>Flight Delays: An Analysis of Patterns and Predictive Modeling</title>
 
-<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
@@ -480,21 +480,10 @@ portion of values (&gt;0.9) in some columns were missing in
 <code>2017 weather dataset</code>, we removed these columns on both 2013
 and 2017 datasets. Lastly, we removed the records containing any NA
 values. .</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;tibble&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;readr&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;purrr&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;stringr&#39; was built under R version 4.2.2</code></pre>
-<pre><code>## Warning: package &#39;forcats&#39; was built under R version 4.2.3</code></pre>
-<pre><code>## Warning: package &#39;lubridate&#39; was built under R version 4.2.3</code></pre>
-<pre class="r"><code>library(dplyr)
-library(&quot;nycflights13&quot;)</code></pre>
-<pre><code>## Warning: package &#39;nycflights13&#39; was built under R version 4.2.3</code></pre>
-<pre class="r"><code>flights_2013 = flights |&gt; 
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
+library(&quot;nycflights13&quot;)
+flights_2013 = flights |&gt; 
   janitor::clean_names()
 weather_2013 = weather |&gt; 
   janitor::clean_names()
@@ -1071,9 +1060,10 @@ The best-performing hyperparameters were selected based on the highest
 mean Area under the ROC Curve (AUC). By highlighting the penalty value
 corresponding to the peak AUC, we visualized the AUC-penalty
 relationship.</p>
-<div class="figure">
-<img src="image/best_hyperparameter.png" style="width:45.0%" alt="" />
-<p class="caption">Finding the Best Hyperparameter</p>
+<div class="float">
+<img src="image/best_hyperparameter.png" style="width:45.0%"
+alt="Finding the Best Hyperparameter" />
+<div class="figcaption">Finding the Best Hyperparameter</div>
 </div>
 <p><br> After that, we trained the logistic regression model with the
 optimal hyperparameters on the entire dataset, and examined coefficients
@@ -1096,9 +1086,10 @@ comparing the performance of the random forest model with the previously
 developed logistic regression model. We visualized sensitivity and
 specificity metrics on a ROC curve for both models using the training
 set.</p>
-<div class="figure">
-<img src="image/rf.png" style="width:45.0%" alt="" />
-<p class="caption">Comparison between Two Models</p>
+<div class="float">
+<img src="image/rf.png" style="width:45.0%"
+alt="Comparison between Two Models" />
+<div class="figcaption">Comparison between Two Models</div>
 </div>
 <p><br> By looking at the graph, we could clearly find that the random
 forest model performs better than the logistic regression model.</p>
