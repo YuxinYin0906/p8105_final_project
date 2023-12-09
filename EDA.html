@@ -13,7 +13,7 @@
 
 <title>Exploratory Data Analysis</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/journal.min.css" rel="stylesheet" />
@@ -622,6 +622,10 @@ model.</p>
 </div>
 <div id="arrival-delay-weather-factors" class="section level2">
 <h2>Arrival Delay &amp; Weather Factors</h2>
+<p>To visualize the relationships between arrival delay and weather
+features, we plot scatterplot of <code>arr_delay</code> against
+<code>pressure</code>, <code>visibility</code>, <code>wind_gust</code>,
+<code>wind_dir</code>, and <code>wind_speed</code> respectively.</p>
 <div id="pressure" class="section level3">
 <h3>Pressure</h3>
 <pre class="r"><code># Average pressure against average arr_delay by month
@@ -636,10 +640,13 @@ pressure_delay_date =
 
 pressure_delay_date</code></pre>
 <p><img src="EDA_files/figure-html/pressure_date-1.png" width="90%" /></p>
-<p>The correlation coefficient was -0.26 suggesting a weak negative
-correlation between pressure (mmhg) and arrival delay in minutes. While
-the p-value is significantly small, it may be driven by a large sample
-size (n=72,734).</p>
+<p>From the plot we could observe a trend that as pressure increased,
+the arrival delay time decreased. Since the trend seemed not very clear,
+we then calculated the correlation coefficient between the two
+variables. The correlation coefficient was -0.26, suggesting a weak
+negative correlation between pressure (mmhg) and arrival delay in
+minutes. While the p-value was significantly small, it might be driven
+by a large sample size (n=72,734).</p>
 </div>
 <div id="visibility" class="section level3">
 <h3>Visibility</h3>
@@ -667,27 +674,31 @@ correlated with average delay time in minutes.</p>
 <h3>Wind</h3>
 <pre class="r"><code># Average Wind Direction against average arr_delay by date
 wind_dir_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_dir, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
   geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  stat_cor(method = &quot;pearson&quot;, size = 5) + 
   guides(color = &#39;none&#39;) +  
   labs(title = &quot;Avg Wind Direction VS Arrival Delay&quot;,
        x = &quot;Avg Daily Wind Direction&quot;,
        y = &quot;Avg arr_delay&quot;)
+
 # Average wind_gust against average arr_delay by date
 wind_gust_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_gust, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_dir, y = avg_arr_delay, color = month)) +
   geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  stat_cor(method = &quot;pearson&quot;, size = 5) + 
   labs(title = &quot;Avg Wind Gust VS Arrival Delay&quot;,
        x = &quot;Avg Daily Wind Gust&quot;,
        y = &quot;Avg arr_delay&quot;)
 
 # Average wind_speed against average arr_delay by date
 wind_speed_delay_date = 
-  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
-  geom_point(size = 3) +
+  ggplot(average_delay_by_date, aes(x = avg_wind_speed, y = avg_arr_delay)) +
+  geom_point(size = 3, aes(x = avg_wind_speed, y = avg_arr_delay, color = month)) +
   geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;coral&quot;, size = 0.6) +
+  stat_cor(method = &quot;pearson&quot;, size = 5) + 
   guides(color = &#39;none&#39;) +  
   labs(title = &quot;Avg Wind Speed VS Arrival Delay&quot;,
        x = &quot;Avg Daily Wind Speed&quot;,
@@ -696,6 +707,21 @@ wind_speed_delay_date =
 
 (wind_dir_delay_date | wind_speed_delay_date) / wind_gust_delay_date</code></pre>
 <p><img src="EDA_files/figure-html/plot_weather_wind-1.png" width="90%" /></p>
+<p>The three scatterplots with fitted lines here illustrated the
+relationship between wind features and arrival delay. We also calculated
+the correlation coefficients to confirm the trends we observed.
+According to the first graph, arrival delay was negatively related to
+wind direction. The correlation coefficient of -0.19 suggested that the
+negative correlation between wind direction and arrival delay was weak.
+In the second graph, generally arrival delay increased as wind speed
+increased, and this positive correlation, though weak, was also shown by
+its correlation coefficient of 0.1. Through the third graph and the
+calculated correlation coefficient of 0.11, a weak positive correlation
+between arrival delay and wind gust could be observed and derived. It
+was worth noticing that the significantly small p-values calculated for
+the three correlation coefficients might still be caused by the large
+sample size (n=72,734) rather than a solid evidence of the
+correlations.</p>
 </div>
 </div>
 <div id="arrival-delay-carriers-temporal-factors"
