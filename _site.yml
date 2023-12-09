@@ -9,7 +9,7 @@ navbar:
       href: about.html
       menu:
       - text: "Us"
-        href: 
+        href: about.html
     - text: "Final Report"
       href: report.html
     - text: "Analysis"

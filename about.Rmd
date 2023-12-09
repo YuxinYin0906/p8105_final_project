@@ -6,6 +6,7 @@ output:
     toc_float: true
     theme: journal
 ---
+<img src="image/7.jpeg" style="width:100%"> <br>
 
 **Fangyi Chen** <br>
 UID: fc2718 <br>
