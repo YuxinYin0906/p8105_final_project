@@ -18,7 +18,8 @@ New York City, a global fusion of diverse culture and busy travel, is serviced b
 
 The airline industry is highly dependent on timely flight operations, and flight delays are a common concern for both passengers and airlines. Flight delays have far-reaching impacts, including not only economic costs for airlines but also inconvenience for passengers. Understanding and predicting these delays can lead to improving airlines efficiency and customer satisfaction. In addition, the New York City area's unique geographical and diverse cultural characteristics present an intriguing case for study. The region's congested airspace, fluctuated weather conditions, and intense flight schedules create an environment where delays are frequent. Analyzing this environment offers valuable insights into urban airport operations and delay management, potentially serving as a model for other major cities that share similar backgrounds as well. <br>
 
-<video width="320" height="240" controls>
+# Video
+<video width="700" height="600" controls>
   <source src="video.mp4" type="video/mp4">
 </video>
 
