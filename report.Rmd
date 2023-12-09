@@ -532,16 +532,43 @@ Furthermore, we further visualized the changes of number of delays and daytime d
 ### Insights from Visualization
 Based on above visualizations, we anticipated weather factors such as pressure,visibility and wind conditions can be beneficial in predicting flight delay task. Additionally, other features such as information about flight carrier and temporarily are believed to helpful in such prediction task as well. Thus, in the subsequent sections, we would further quantity their correlations by leveraging multiple linear regression.
 
-
-
 ## Additional analysis
 
+### Model Selection
+
+After the initial acquisition of insights, we wanted to further analyze the data and build predictive models to predict whether a flight is delayed or not based on highly correlated variables. In order to reach the goal, we chose two models, lasso regression and random forest as they bring different strengths to the table. 
+
+### Lasso Regression
+
+Using the `logistic_reg` function with hyperparameter tuning for the penalty and mixture parameters, we defined the logistic regression model. The glmnet engine was set up to be used by the model. Feature preprocessing included managing data variables, eliminating unnecessary columns, creating dummy variables for categorical predictors, removing zero-variance predictors, and normalizing all predictors.  <br>
+<br>
+We then conducted a grid search was conducted over a range of penalty values and saved the results for further analysis. The best-performing hyperparameters were selected based on the highest mean Area under the ROC Curve (AUC). By highlighting the penalty value corresponding to the peak AUC, we visualized the AUC-penalty relationship.
+
+![Finding the Best Hyperparameter](image/best_hyperparameter.png){width=45%}
+
+After that, we trained the logistic regression model with the optimal hyperparameters on the entire dataset, and examined coefficients to identify the top 20 predictors. 
+
+### Random Forest Regression
+
+The first step we took was detecting and storing the number of available CPU cores in the variable `cores`. This information is essential for optimizing the performance of parallelized computations. <br>
+<br>
+We then specified hyperparameters for the random forest model and adjusted it during the model training phase. We employed a preprocessing recipe to handle date variables, remove redundant columns, and create dummy variables (`df_other`) for categorical predictors on the training data. <br>
+<br>
+We used the area under the ROC curve metric to assess the model once hyperparameter tuning was completed on a grid of values for `mtry` and `min_n` <br>
+<br>
+One of the most important steps was comparing the performance of the random forest model with the previously developed logistic regression model. We visualized sensitivity and specificity metrics on a ROC curve for both models using the training set. 
+
+![Comparison between Two Models](image/rf.png){width=45%}
+
+By looking at the graph, we could clearly find that the random forest model performs better that logistic regression model.
+
+Finally, we trained the final random forest model with the optimal hyperparameters and evaluated its performance. As we did for logistic regression model, we also visualized the top 20 predictors to highlight the feature importance of the model.
 
 ## Discussion
 
 The objective of the study was to assess the correlation between flight delay duration and various flight-related factors using multiple linear regression. Additionally, the research aimed to forecast flight delays by employing a machine learning framework.
 
-## Variable Selection
+### Variable Selection
 
 Lasso Regression and Random Forest models were applied to analyze the 2013 New York City flight dataset. The accompanying plots shed light on the 'variable importance.' On the right side, the top 20 absolute value estimates of Lasso Regression reveal a predominant presence of destination dummy variables. In contrast, the Random Forest plot on the left tells a distinct tale. Continuous variables such as airtime, pressure, distance, etc., play a more significant role in predicting delays compared to other categorical variables.
 
@@ -562,7 +589,7 @@ Random Forest (RF):
 
 * Robust to Collinearity: RF is less sensitive to multicollinearity, which means it can handle correlated features without necessarily discarding one of them. This can be advantageous when dealing with a mix of categorical and continuous variables.
 
-## Model Performance
+### Model Performance
 
 2017 New York City flight dataset was used for model evaluation. Notably, the Random Forest model exhibited superior performance across a majority of evaluation metrics. 
 
